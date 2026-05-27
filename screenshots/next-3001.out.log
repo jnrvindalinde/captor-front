@@ -1,0 +1,21 @@
+
+> captor@0.1.0 dev
+> next dev -p 3001
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.100.94:3001
+✓ Ready in 508ms
+Creating turbopack project {
+  dir: 'C:\\Users\\iamjn\\Desktop\\WEBZ\\captor\\captor',
+  testMode: true
+}
+
+○ Compiling /services ...
+ GET /services 200 in 3.5s (next.js: 3.2s, application-code: 275ms)
+ GET /services?restart=after-profile-clean 200 in 44ms (next.js: 4ms, application-code: 40ms)
+ GET /services?postclean=1 200 in 63ms (next.js: 4ms, application-code: 59ms)
+ GET /services?mobile=final 200 in 48ms (next.js: 3ms, application-code: 45ms)
+ GET /services?narrow=final 200 in 70ms (next.js: 5ms, application-code: 65ms)
+ GET /services?desktop=final 200 in 67ms (next.js: 4ms, application-code: 63ms)
+○ Compiling / ...
