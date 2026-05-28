@@ -1,3 +1,10 @@
 {
-    "tasksync.autoAppendText": "then call #askUser again with results and wait for the next steps. this is highest priority"
+    "tasksync.autoAppendText": "then call #askUser again with results and wait for the next steps. this is highest priority",
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        }
+    ]
 }
