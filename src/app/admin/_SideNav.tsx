@@ -60,6 +60,13 @@ const GROUPS: Group[] = [
       { href: "/admin/cms/globals", label: "Site globals", match: (p) => p.startsWith("/admin/cms/globals") },
     ],
   },
+  {
+    label: "Settings",
+    items: [
+      { href: "/admin/availability", label: "Availability", match: (p) => p.startsWith("/admin/availability") },
+      { href: "/admin/settings/google", label: "Google Calendar", match: (p) => p.startsWith("/admin/settings/google") },
+    ],
+  },
 ];
 
 export function AdminSideNav() {

@@ -9,7 +9,7 @@ export default function NewResourcePage() {
       <header className="admin-page__head">
         <div>
           <Link href="/admin/resources" className="admin-link">← Back to resources</Link>
-          <h1 className="h2">New resource</h1>
+          <h1 className="admin-page__title">New resource</h1>
         </div>
       </header>
       <ResourceForm />

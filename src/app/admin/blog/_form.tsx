@@ -1,12 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { Post } from "../_mock";
-import {
-  savePostAction,
-  deletePostAction,
-  type PostFormState,
-} from "./_actions";
+import { savePostAction, deletePostAction, type PostFormState } from "./_actions";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { FilePicker } from "@/components/ui/FilePicker";
 
 const initial: PostFormState = {};
 
@@ -14,10 +12,41 @@ export function PostForm({ post, live = true }: { post?: Post; live?: boolean })
   const [state, formAction, pending] = useActionState(savePostAction, initial);
   const isEdit = !!post;
 
+  const initialBody = post?.body ?? "";
+  const [body, setBody] = useState<string>(initialBody);
+  const [coverPreview, setCoverPreview] = useState<string | null>(post?.cover_image ?? null);
+  const [dirty, setDirty] = useState<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+    };
+  }, [coverPreview]);
+
+  function clearImage() {
+    if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(null);
+    setDirty(true);
+  }
+
+  function handleBodyChange(html: string) {
+    setBody(html);
+    if (html !== initialBody) setDirty(true);
+  }
+
   return (
-    <>
-      <form action={formAction} className="admin-form">
+    <div className="admin-form-wrap">
+      <form
+        action={formAction}
+        className="admin-form-card"
+        onChange={() => setDirty(true)}
+      >
         {isEdit && <input type="hidden" name="id" value={post!.id} />}
+        {isEdit && post?.cover_image && (
+          <input type="hidden" name="cover_image_existing" value={post.cover_image} />
+        )}
+        {/* The editor writes its HTML into this hidden field on every keystroke. */}
+        <input type="hidden" name="body" value={body} />
 
         {!live && (
           <p className="admin-gated" role="status">
@@ -28,81 +57,125 @@ export function PostForm({ post, live = true }: { post?: Post; live?: boolean })
           <p className="admin-gated" role="alert">{state.error}</p>
         )}
 
-        <div className="admin-form__row">
-          <label className="admin-form__field">
-            <span>Title</span>
-            <input type="text" name="title" required defaultValue={post?.title ?? ""} placeholder="e.g. How to pick a master's program" aria-invalid={Boolean(state.fieldErrors?.title)} />
-            {state.fieldErrors?.title?.[0] && <small className="admin-muted">{state.fieldErrors.title[0]}</small>}
-          </label>
-          <label className="admin-form__field">
-            <span>Slug</span>
-            <input type="text" name="slug" defaultValue={post?.slug ?? ""} placeholder="auto-generated from title" />
-            {state.fieldErrors?.slug?.[0] && <small className="admin-muted">{state.fieldErrors.slug[0]}</small>}
-          </label>
-        </div>
-
-        <label className="admin-form__field">
-          <span>Excerpt</span>
-          <textarea name="excerpt" rows={2} maxLength={500} defaultValue={post?.excerpt ?? ""} placeholder="Short summary shown in listings (max 500 chars)" />
+        <label className="contact-field">
+          <span className="contact-field__label">Title</span>
+          <input
+            type="text"
+            name="title"
+            required
+            defaultValue={post?.title ?? ""}
+            placeholder="e.g. How to pick a master's program"
+            aria-invalid={Boolean(state.fieldErrors?.title)}
+          />
+          {state.fieldErrors?.title?.[0] && (
+            <span className="contact-form__error">{state.fieldErrors.title[0]}</span>
+          )}
         </label>
 
-        <label className="admin-form__field">
-          <span>Body (markdown)</span>
-          <textarea name="body" rows={14} defaultValue={post?.body ?? ""} placeholder="## Section heading…" />
+        <label className="contact-field">
+          <span className="contact-field__label">Excerpt</span>
+          <textarea
+            name="excerpt"
+            rows={2}
+            maxLength={500}
+            defaultValue={post?.excerpt ?? ""}
+            placeholder="Short summary shown in listings (max 500 chars)"
+          />
         </label>
 
-        <div className="admin-form__row">
-          <label className="admin-form__field">
-            <span>Status</span>
-            <select name="status" defaultValue={post?.status ?? "draft"}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
+        <div className="contact-field">
+          <span className="contact-field__label">Body</span>
+          <RichTextEditor value={body} onChange={handleBodyChange} placeholder="Start writing…" />
+        </div>
+
+        <div className="contact-field">
+          <span className="contact-field__label">Cover image</span>
+          <div className="admin-upload">
+            {coverPreview && (
+              <div className="admin-upload__preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={coverPreview} alt="Cover preview" />
+              </div>
+            )}
+            <FilePicker
+              name="cover_file"
+              accept="image/*"
+              buttonLabel="Choose image"
+              onSelect={(f) => {
+                if (coverPreview && coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
+                setCoverPreview(URL.createObjectURL(f));
+                setDirty(true);
+              }}
+              onClear={clearImage}
+            />
+            <small className="admin-muted">Uploads to Cloudinary on save. Max 1 GB.</small>
+          </div>
+        </div>
+
+        <div className="contact-form__row">
+          <label className="contact-field">
+            <span className="contact-field__label">Tags</span>
+            <input
+              type="text"
+              name="tags"
+              defaultValue={post?.tags?.join(", ") ?? ""}
+              placeholder="study-abroad, decisions (comma-separated)"
+            />
           </label>
-          <label className="admin-form__field">
-            <span>Publish date</span>
-            <input type="datetime-local" name="published_at" defaultValue={post?.published_at ? post.published_at.slice(0, 16) : ""} />
+          <label className="contact-field">
+            <span className="contact-field__label">Publish date</span>
+            <input
+              type="datetime-local"
+              name="published_at"
+              defaultValue={post?.published_at ? post.published_at.slice(0, 16) : ""}
+            />
           </label>
         </div>
 
-        <div className="admin-form__row">
-          <label className="admin-form__field">
-            <span>Tags (comma-separated)</span>
-            <input type="text" name="tags" defaultValue={post?.tags?.join(", ") ?? ""} placeholder="study-abroad, decisions" />
-          </label>
-          <label className="admin-form__field">
-            <span>Cover image URL</span>
-            <input type="url" name="cover_image" defaultValue={post?.cover_image ?? ""} placeholder="https://…" />
-          </label>
-        </div>
+        {isEdit && (
+          <div className="contact-form__row">
+            <label className="contact-field">
+              <span className="contact-field__label">Status</span>
+              <select name="status" defaultValue={post?.status ?? "published"}>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </label>
+          </div>
+        )}
 
-        <div className="admin-form__actions">
-          <button type="submit" className="admin-btn admin-btn--solid" disabled={pending || !live}>
-            {pending ? "Saving…" : isEdit ? "Save changes" : "Create post"}
-          </button>
-        </div>
+        {(!isEdit || dirty || pending) && (
+          <div className="admin-form__actions">
+            <button
+              type="submit"
+              className="admin-btn admin-btn--solid"
+              disabled={pending || !live}
+            >
+              {pending ? "Saving…" : isEdit ? "Save changes" : "Publish post"}
+            </button>
+          </div>
+        )}
       </form>
-
-      {isEdit && <DeleteForm id={post!.id} disabled={!live} />}
-    </>
+    </div>
   );
 }
 
-function DeleteForm({ id, disabled }: { id: number; disabled: boolean }) {
+export function DeletePostButton({ id, disabled = false }: { id: number; disabled?: boolean }) {
   return (
     <form
       action={deletePostAction}
-      className="admin-form__actions"
-      style={{ marginTop: 16 }}
+      style={{ display: "inline" }}
       onSubmit={(e) => {
-        if (!confirm("Delete this post? This cannot be undone.")) {
-          e.preventDefault();
-        }
+        if (!confirm("Delete this post? This cannot be undone.")) e.preventDefault();
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button type="submit" className="admin-btn admin-btn--ghost admin-btn--danger" disabled={disabled}>
-        Delete
+      <button
+        type="submit"
+        className="admin-btn admin-btn--ghost admin-btn--danger"
+        disabled={disabled}
+      >
+        Delete post
       </button>
     </form>
   );

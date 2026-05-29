@@ -101,6 +101,59 @@ export async function scheduleMeetingAction(
   }
 }
 
+export type SlotResponse = {
+  data: Array<{ start: string; end: string }>;
+  meta: {
+    advisor_id: number;
+    advisor_name: string;
+    google_connected: boolean;
+    from: string;
+    to: string;
+  };
+};
+
+export async function fetchMeetingSlotsAction(opts: {
+  from: string;
+  to: string;
+  userId?: number;
+}): Promise<ActionResult<SlotResponse>> {
+  try {
+    const qs = new URLSearchParams({ from: opts.from, to: opts.to });
+    if (opts.userId) qs.set("user_id", String(opts.userId));
+    const res = await apiFetch<SlotResponse>(`/api/admin/meetings/slots?${qs.toString()}`);
+    return { ok: true, data: res };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function cancelMeetingAction(uuid: string, meetingId: number): Promise<ActionResult<{ meeting: Meeting }>> {
+  try {
+    const res = await apiFetch<{ meeting: Meeting }>(`/api/admin/meetings/${meetingId}`, { method: "DELETE" });
+    revalidate(uuid);
+    return { ok: true, data: res };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+export async function rescheduleMeetingAction(
+  uuid: string,
+  meetingId: number,
+  scheduled_at: string,
+): Promise<ActionResult<{ meeting: Meeting }>> {
+  try {
+    const res = await apiFetch<{ meeting: Meeting }>(`/api/admin/meetings/${meetingId}/reschedule`, {
+      method: "PATCH",
+      json: { scheduled_at },
+    });
+    revalidate(uuid);
+    return { ok: true, data: res };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 export async function convertLeadToClientAction(
   uuid: string,
   body: { program: ClientProgram; consultant_id?: number | null },

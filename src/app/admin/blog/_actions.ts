@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apiFetch, type ApiError } from "@/lib/api";
+import { getSessionToken } from "@/lib/session";
 import type { Post, PostStatus } from "../_mock";
 
 export type PostFormState = {
@@ -12,10 +13,7 @@ export type PostFormState = {
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
   if (typeof raw !== "string") return [];
-  return raw
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
+  return raw.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
 function emptyToNull(v: FormDataEntryValue | null): string | null {
@@ -32,7 +30,35 @@ function publishedAtToIso(raw: FormDataEntryValue | null): string | null {
 
 function revalidate(id?: number) {
   revalidatePath("/admin/blog");
+  revalidatePath("/blog");
   if (id) revalidatePath(`/admin/blog/${id}/edit`);
+}
+
+async function uploadCover(file: File): Promise<string | null> {
+  if (!file || file.size === 0) return null;
+  const token = await getSessionToken();
+  if (!token) return null;
+
+  const base = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("folder", "captor/blog");
+
+  const res = await fetch(`${base}/api/admin/media`, {
+    method: "POST",
+    headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+    body: fd,
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    let msg = `Cover upload failed (${res.status}).`;
+    try { const j = await res.json(); if (j?.message) msg = j.message; } catch { /* ignore */ }
+    throw { status: res.status, message: msg } as ApiError;
+  }
+
+  const json = (await res.json()) as { data?: { url?: string; secure_url?: string }; url?: string; secure_url?: string };
+  return json.data?.url ?? json.data?.secure_url ?? json.url ?? json.secure_url ?? null;
 }
 
 export async function savePostAction(
@@ -41,35 +67,49 @@ export async function savePostAction(
 ): Promise<PostFormState> {
   const idRaw = formData.get("id");
   const id = typeof idRaw === "string" && idRaw ? Number(idRaw) : null;
+  const isEdit = !!id;
 
-  const payload = {
-    title: String(formData.get("title") ?? "").trim(),
-    slug: emptyToNull(formData.get("slug")),
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return { error: "Title is required." };
+
+  const statusRaw = formData.get("status");
+  const status: PostStatus | undefined = typeof statusRaw === "string" && statusRaw
+    ? (statusRaw as PostStatus)
+    : (isEdit ? undefined : ("published" as PostStatus));
+
+  let coverImage: string | null = emptyToNull(formData.get("cover_image_existing"));
+  const file = formData.get("cover_file");
+  try {
+    if (file instanceof File && file.size > 0) {
+      const url = await uploadCover(file);
+      if (url) coverImage = url;
+    }
+  } catch (e) {
+    const err = e as ApiError;
+    return { error: err?.message ?? "Cover image upload failed." };
+  }
+
+  const payload: Record<string, unknown> = {
+    title,
     excerpt: emptyToNull(formData.get("excerpt")),
     body: emptyToNull(formData.get("body")),
-    cover_image: emptyToNull(formData.get("cover_image")),
-    status: (String(formData.get("status") ?? "draft") as PostStatus),
+    cover_image: coverImage,
     tags: parseTags(formData.get("tags")),
     published_at: publishedAtToIso(formData.get("published_at")),
   };
-
-  if (!payload.title) {
-    return { error: "Title is required." };
+  if (status) payload.status = status;
+  if (isEdit) {
+    const slug = emptyToNull(formData.get("slug"));
+    if (slug) payload.slug = slug;
   }
 
   let saved: Post;
   try {
     if (id) {
-      const r = await apiFetch<{ post: Post }>(`/api/admin/posts/${id}`, {
-        method: "PATCH",
-        json: payload,
-      });
+      const r = await apiFetch<{ post: Post }>(`/api/admin/posts/${id}`, { method: "PATCH", json: payload });
       saved = r.post;
     } else {
-      const r = await apiFetch<{ post: Post }>(`/api/admin/posts`, {
-        method: "POST",
-        json: payload,
-      });
+      const r = await apiFetch<{ post: Post }>(`/api/admin/posts`, { method: "POST", json: payload });
       saved = r.post;
     }
   } catch (e) {
@@ -86,9 +126,7 @@ export async function deletePostAction(formData: FormData): Promise<void> {
   if (!id) redirect("/admin/blog");
   try {
     await apiFetch(`/api/admin/posts/${id}`, { method: "DELETE" });
-  } catch {
-    // Best-effort; we still bounce to the list.
-  }
+  } catch { /* best-effort */ }
   revalidate();
   redirect("/admin/blog?deleted=1");
 }

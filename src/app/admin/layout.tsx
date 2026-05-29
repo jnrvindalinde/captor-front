@@ -5,6 +5,7 @@ import { logoutAction } from "@/app/actions/auth";
 import { requireAdmin } from "@/lib/auth";
 import { AdminTopBar } from "./_TopBar";
 import { AdminSideNav } from "./_SideNav";
+import { NotificationsProvider } from "./_NotificationsContext";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const user = await requireAdmin();
@@ -42,8 +43,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       </aside>
 
       <main className="admin-main">
-        <AdminTopBar user={{ name: user.name, email: user.email }} />
-        <div className="admin-main__inner">{children}</div>
+        <NotificationsProvider>
+          <AdminTopBar user={{ name: user.name, email: user.email }} />
+          <div className="admin-main__inner">{children}</div>
+        </NotificationsProvider>
       </main>
     </div>
   );

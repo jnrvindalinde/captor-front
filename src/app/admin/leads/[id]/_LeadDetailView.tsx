@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   type ApplicationDetail,
@@ -19,11 +19,15 @@ import {
   editLeadNoteAction,
   decideApplicationAction,
   scheduleMeetingAction,
+  cancelMeetingAction,
+  rescheduleMeetingAction,
   convertLeadToClientAction,
 } from "./_actions";
 import type { ClientProgram } from "../../_mock";
 import { clientProgramLabels } from "../../_mock";
+import { ScheduleMeetingModal } from "./_ScheduleMeetingModal";
 import { setBreadcrumbLabel } from "../../_TopBar";
+import { useNotifications } from "../../_NotificationsContext";
 
 const statusOrder: LeadStatus[] = [
   "new",
@@ -79,6 +83,14 @@ function labelize(map: Record<string, string>, value: string) {
   return map[value] ?? value;
 }
 
+function ClientDate({ iso }: { iso: string }) {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    setText(new Date(iso).toLocaleString());
+  }, [iso]);
+  return <span suppressHydrationWarning>{text}</span>;
+}
+
 type Toast = { id: number; tone: "success" | "info" | "warn"; message: string };
 
 export function LeadDetailView({
@@ -117,6 +129,21 @@ export function LeadDetailView({
   // this comes from the session.
   const currentUser = { id: 1, name: "Career360 Admin", email: "admin@career360consult.com" };
   const [notes, setNotes] = useState<Note[]>(lead.notes);
+  const { setItems: setNotificationItems } = useNotifications();
+  useEffect(() => {
+    setNotificationItems(
+      notes
+        .filter((n) => n.kind === "system")
+        .slice()
+        .reverse()
+        .map((n) => ({
+          id: `${lead.uuid}-${n.id}`,
+          body: n.body,
+          created_at: n.created_at,
+          source: { leadUuid: lead.uuid, leadName: lead.name },
+        }))
+    );
+  }, [notes, lead.uuid, lead.name, setNotificationItems]);
   // Register the live lead name with the topbar so the breadcrumb shows
   // "Richard Somda" instead of the raw UUID.
   useEffect(() => {
@@ -301,7 +328,7 @@ export function LeadDetailView({
             {statusLabels[status]}
           </span>
           <span className="admin-muted">
-            Created {new Date(lead.created_at).toLocaleString()}
+            Created <ClientDate iso={lead.created_at} />
           </span>
         </div>
       </header>
@@ -320,7 +347,7 @@ export function LeadDetailView({
             />
           )}
 
-          <NotesCard notes={notes} onAdd={addManualNote} onEdit={editNote} />
+          <NotesCard notes={notes.filter((n) => n.kind !== "system")} onAdd={addManualNote} onEdit={editNote} />
           <MeetingsCard
             lead={lead}
             canSchedule={canSchedule}
@@ -343,6 +370,40 @@ export function LeadDetailView({
                 }
                 // Reconcile the optimistic system note with the backend's.
                 if (r.data.lead.notes) setNotes(r.data.lead.notes);
+              });
+            }}
+            onCancelMeeting={(meetingId) => {
+              if (!window.confirm("Cancel this meeting? The Google Calendar event will also be removed and the attendee notified.")) return;
+              if (!live) {
+                pushToast("info", "Meeting canceled (mock mode).");
+                return;
+              }
+              startTransition(async () => {
+                const r = await cancelMeetingAction(lead.uuid, meetingId);
+                if (!r.ok) {
+                  pushToast("warn", `Cancel failed: ${r.message}`);
+                  return;
+                }
+                pushToast("success", "Meeting canceled.");
+                window.location.reload();
+              });
+            }}
+            onReschedule={(meetingId, when) => {
+              addSystemNote(
+                `Meeting rescheduled to ${new Date(when).toLocaleString()}.`
+              );
+              pushToast(
+                "success",
+                `Meeting moved to ${new Date(when).toLocaleString()}.`
+              );
+              if (!live) return;
+              startTransition(async () => {
+                const r = await rescheduleMeetingAction(lead.uuid, meetingId, when);
+                if (!r.ok) {
+                  pushToast("warn", `Reschedule failed: ${r.message}`);
+                  return;
+                }
+                window.location.reload();
               });
             }}
           />
@@ -512,7 +573,7 @@ function ApplicationCard({
         <div className={`admin-decision-banner admin-decision-banner--${decision}`}>
           <strong>{decisionLabel}</strong>
           {decidedAt && (
-            <span className="admin-muted"> on {new Date(decidedAt).toLocaleDateString()}</span>
+            <span className="admin-muted"> on <ClientDate iso={decidedAt} /></span>
           )}
           {decisionNote && <p>{decisionNote}</p>}
         </div>
@@ -541,17 +602,32 @@ function ApplicationCard({
         <>
           <h3 className="admin-subhead">Files</h3>
           <ul className="admin-files">
-            {data.files.map((f) => (
-              <li key={f.id}>
-                <span className="admin-files__name">{f.original_name}</span>
-                <span className="admin-files__meta">
-                  {f.mime ?? "file"} · {formatBytes(f.size)}
-                </span>
-                <button type="button" className="admin-btn admin-btn--ghost admin-btn--sm">
-                  Download
-                </button>
-              </li>
-            ))}
+            {data.files.map((f) => {
+              const isUrl = /^https?:\/\//i.test(f.path);
+              return (
+                <li key={f.id}>
+                  <span className="admin-files__name">{f.original_name}</span>
+                  <span className="admin-files__meta">
+                    {f.mime ?? "file"} · {formatBytes(f.size)}
+                  </span>
+                  {isUrl ? (
+                    <a
+                      href={f.path}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="admin-btn admin-btn--ghost admin-btn--sm"
+                      download={f.original_name}
+                    >
+                      Download
+                    </a>
+                  ) : (
+                    <button type="button" className="admin-btn admin-btn--ghost admin-btn--sm" disabled>
+                      Download
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </>
       )}
@@ -706,7 +782,7 @@ function NotesCard({
                       <div className="admin-notes__head">
                         <strong>{isSystem ? "System" : n.author.name}</strong>
                         <span className="admin-muted" suppressHydrationWarning>
-                          {new Date(n.created_at).toLocaleString()}
+                          <ClientDate iso={n.created_at} />
                         </span>
                         {!isSystem && !isEditing && (
                           <button
@@ -761,28 +837,115 @@ function NotesCard({
   );
 }
 
+function MeetingActionsMenu({
+  onReschedule,
+  onCancel,
+}: {
+  onReschedule?: () => void;
+  onCancel: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+  return (
+    <div className="admin-more" ref={ref}>
+      <button
+        type="button"
+        className="admin-more__trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="More actions"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true" width={18} height={18}>
+          <circle cx="10" cy="4" r="1.6" fill="currentColor" />
+          <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+          <circle cx="10" cy="16" r="1.6" fill="currentColor" />
+        </svg>
+      </button>
+      {open && (
+        <div className="admin-more__menu" role="menu">
+          {onReschedule && (
+            <button
+              type="button"
+              role="menuitem"
+              className="admin-more__item"
+              onClick={() => {
+                setOpen(false);
+                onReschedule();
+              }}
+            >
+              Reschedule
+            </button>
+          )}
+          <button
+            type="button"
+            role="menuitem"
+            className="admin-more__item admin-more__item--danger"
+            onClick={() => {
+              setOpen(false);
+              onCancel();
+            }}
+          >
+            Cancel meeting
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MeetingsCard({
   lead,
   canSchedule,
   applicantEmail,
   onScheduled,
+  onCancelMeeting,
+  onReschedule,
 }: {
   lead: LeadDetail;
   canSchedule: boolean;
   applicantEmail: string | null;
   onScheduled: (when: string) => void;
+  onCancelMeeting?: (meetingId: number) => void;
+  onReschedule?: (meetingId: number, when: string) => void;
 }) {
-  const [when, setWhen] = useState<string>("");
-  const [note, setNote] = useState<string>("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [reschedulingId, setReschedulingId] = useState<number | null>(null);
 
   return (
     <article className="admin-panel">
       <header className="admin-panel__head">
         <h2 className="h3">Meetings</h2>
-        <span className="admin-muted">{lead.meetings.length}</span>
+        <div className="admin-panel__head-actions">
+          <span className="admin-muted">{lead.meetings.length}</span>
+          {canSchedule && (
+            <button
+              type="button"
+              className="btn btn--primary btn--sm"
+              onClick={() => setModalOpen(true)}
+            >
+              Schedule meeting
+            </button>
+          )}
+        </div>
       </header>
 
-      {!canSchedule ? (
+      {!canSchedule && (
         <div className="admin-gated">
           <strong>Move this lead to <em>Contacted</em> before scheduling.</strong>
           <p>
@@ -791,74 +954,79 @@ function MeetingsCard({
             scheduling.
           </p>
         </div>
-      ) : (
-        <form
-          className="admin-meeting-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!when) return;
-            onScheduled(when);
-            setWhen("");
-            setNote("");
-          }}
-        >
-          <div className="admin-meeting-form__row">
-            <label>
-              <span>Date / time</span>
-              <input
-                type="datetime-local"
-                name="scheduled_at"
-                required
-                value={when}
-                onChange={(e) => setWhen(e.target.value)}
-              />
-            </label>
-            <label>
-              <span>Notes (optional)</span>
-              <input
-                type="text"
-                name="notes_short"
-                placeholder="e.g. Discovery call · 30 min"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </label>
-          </div>
-          <p className="admin-muted admin-muted--sm">
-            A Google Calendar event with a Google Meet link will be created
-            automatically and emailed to {applicantEmail ?? "the lead"}.
-          </p>
-          <div>
-            <button type="submit" className="admin-btn admin-btn--solid admin-btn--sm">
-              Schedule meeting
-            </button>
-          </div>
-        </form>
       )}
 
       {lead.meetings.length === 0 ? (
         <p className="admin-empty">No meetings scheduled.</p>
       ) : (
         <ul className="admin-meetings">
-          {lead.meetings.map((m) => (
+          {[...lead.meetings]
+            .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
+            .map((m) => (
             <li key={m.id}>
               <div className="admin-meetings__head">
-                <strong>{new Date(m.scheduled_at).toLocaleString()}</strong>
+                <span className="admin-meetings__when">
+                  <strong><ClientDate iso={m.scheduled_at} /></strong>
+                  {m.scheduler && (
+                    <span className="admin-muted"> · Scheduled by {m.scheduler.name}</span>
+                  )}
+                </span>
                 <span className={`admin-pill admin-pill--${m.status}`}>{m.status}</span>
               </div>
               {m.notes && <p>{m.notes}</p>}
               <div className="admin-meetings__meta">
-                {m.scheduler && <span>Scheduled by {m.scheduler.name}</span>}
-                {m.google_meet_link && (
-                  <a href={m.google_meet_link} target="_blank" rel="noreferrer">
-                    Join Google Meet ↗
+                {m.google_meet_link && m.status !== "canceled" && (
+                  <a
+                    href={m.google_meet_link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn btn--primary btn--sm admin-meet-btn"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Google_Meet_icon_%282020%29.svg"
+                      alt=""
+                    />
+                    Join Meet
                   </a>
+                )}
+                {onCancelMeeting && m.status !== "canceled" && (
+                  <MeetingActionsMenu
+                    onReschedule={
+                      onReschedule
+                        ? () => {
+                            setReschedulingId(m.id);
+                            setModalOpen(true);
+                          }
+                        : undefined
+                    }
+                    onCancel={() => onCancelMeeting(m.id)}
+                  />
                 )}
               </div>
             </li>
           ))}
         </ul>
       )}
+
+      <ScheduleMeetingModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setReschedulingId(null);
+        }}
+        applicantEmail={applicantEmail}
+        mode={reschedulingId != null ? "reschedule" : "schedule"}
+        onPick={(when) => {
+          if (reschedulingId != null && onReschedule) {
+            onReschedule(reschedulingId, when);
+          } else {
+            onScheduled(when);
+          }
+          setModalOpen(false);
+          setReschedulingId(null);
+        }}
+      />
     </article>
   );
 }
@@ -914,11 +1082,11 @@ function ConvertToClientPanel({
   }
 
   return (
-    <section className="admin-panel">
+    <section className="admin-panel admin-convert">
       <header className="admin-panel__head">
         <h2 className="h3">Convert to client</h2>
       </header>
-      <p className="admin-muted">
+      <p className="admin-muted admin-convert__lede">
         Promote this won lead to an active client engagement.
       </p>
       <label className="admin-field">
@@ -936,7 +1104,7 @@ function ConvertToClientPanel({
       </label>
       <button
         type="button"
-        className="admin-btn admin-btn--solid"
+        className="admin-btn admin-btn--solid admin-convert__submit"
         disabled={disabled}
         onClick={() => onConvert(program)}
       >

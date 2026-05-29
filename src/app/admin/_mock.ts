@@ -608,6 +608,7 @@ export type ResourceItem = {
   description: string | null;
   format: ResourceFormat;
   file_path: string | null;
+  file_label: string | null;
   external_url: string | null;
   cover_image: string | null;
   status: ResourceStatus;
@@ -626,6 +627,7 @@ export const mockResources: ResourceItem[] = [
       "A 28-page printable workbook that walks through eligibility, document prep, and timeline planning.",
     format: "guide",
     file_path: "resources/guides/scholarship-readiness.pdf",
+    file_label: null,
     external_url: null,
     cover_image: null,
     status: "published",
@@ -641,6 +643,7 @@ export const mockResources: ResourceItem[] = [
     description: "45-minute walkthrough covering behavioural and case interview structure.",
     format: "video",
     file_path: null,
+    file_label: null,
     external_url: "https://youtu.be/example",
     cover_image: null,
     status: "published",
@@ -656,6 +659,7 @@ export const mockResources: ResourceItem[] = [
     description: "Pre-departure checklist covering visa, finance, accommodation, mental health.",
     format: "document",
     file_path: "resources/docs/study-abroad-checklist.pdf",
+    file_label: null,
     external_url: null,
     cover_image: null,
     status: "draft",
@@ -675,16 +679,22 @@ export type StoryOutcome =
   | "transition"
   | "achievement";
 
+export type StoryCategory = "School" | "Scholarship" | "Job" | "Career";
+
 export type Story = {
   id: number;
   slug: string;
   title: string;
   summary: string | null;
+  quote: string | null;
   body: string | null;
   person_name: string;
   person_role: string | null;
   outcome: StoryOutcome | null;
+  outcome_label: string | null;
+  categories: StoryCategory[] | null;
   cover_image: string | null;
+  gallery: string[] | null;
   status: "draft" | "published";
   author: { id: number; name: string };
   created_at: string;
@@ -698,11 +708,16 @@ export const mockStories: Story[] = [
     title: "From banking floor to INSEAD",
     summary:
       "How Ama landed an employer-sponsored INSEAD MBA seat after a 6-month structured prep cycle.",
+    quote:
+      "They challenged every vague answer I gave until the why behind my MBA was crystal clear.",
     body: "Ama joined us in September…",
     person_name: "Ama Owusu",
     person_role: "Banking → MBA candidate",
     outcome: "admission",
+    outcome_label: "INSEAD MBA, sponsored",
+    categories: ["School"],
     cover_image: null,
+    gallery: null,
     status: "published",
     author: { id: 1, name: "Career360 Admin" },
     created_at: "2026-05-24T18:00:00Z",
@@ -714,11 +729,15 @@ export const mockStories: Story[] = [
     title: "Full-ride scholarship: Kojo's clean-energy pivot",
     summary:
       "Kojo went from oil & gas mechanical engineering to a fully-funded MIT research masters in 11 months.",
+    quote: "The shortlist work alone saved me a year of scattered applications.",
     body: null,
     person_name: "Kojo Boateng",
     person_role: "Mechanical Eng. → Clean energy research",
     outcome: "scholarship",
+    outcome_label: "MIT — fully funded",
+    categories: ["School", "Scholarship"],
     cover_image: null,
+    gallery: null,
     status: "draft",
     author: { id: 2, name: "Akua Mensah" },
     created_at: "2026-05-26T14:00:00Z",

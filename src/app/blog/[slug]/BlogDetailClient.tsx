@@ -71,19 +71,28 @@ export function BlogDetailClient({ blog, prev, next }: BlogDetailClientProps) {
       </header>
 
       <article className="blog-detail-body">
-        {blog.sections.map((section) => (
+        {blog.sections.map((section, sIdx) => (
           <motion.section
-            key={section.heading}
+            key={`${sIdx}-${section.heading}`}
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true, margin: "-100px" }}
           >
-            <h2>{section.heading}</h2>
+            {section.heading && <h2>{section.heading}</h2>}
             {section.blocks.map((block, i) => {
               if (block.type === "paragraph") {
                 return (
                   <p key={i}>{block.content}</p>
+                );
+              } else if ((block as { type: string }).type === "html") {
+                const html = (block as unknown as { html: string }).html;
+                return (
+                  <div
+                    key={i}
+                    className="blog-detail-rte"
+                    dangerouslySetInnerHTML={{ __html: html }}
+                  />
                 );
               } else if (block.type === "bulletList") {
                 return (

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { mockResources, type ResourceItem } from "../../../_mock";
-import { ResourceForm } from "../../_form";
+import { ResourceForm, DeleteResourceButton } from "../../_form";
 
 export const metadata = { title: "Edit resource · Captor admin" };
 
@@ -31,13 +31,19 @@ export default async function EditResourcePage({
 
   return (
     <div className="admin-page">
-      <header className="admin-page__head">
+      <header
+        className="admin-page__head"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}
+      >
         <div>
           <Link href="/admin/resources" className="admin-link">← Back to resources</Link>
-          <h1 className="h2">{resource.title}</h1>
+          <h1 className="admin-page__title">{resource.title}</h1>
           <p className="admin-muted admin-muted--sm">/{resource.slug} · {resource.format}</p>
         </div>
-        <span className={`admin-pill admin-pill--${resource.status}`}>{resource.status}</span>
+        <div className="admin-actions" style={{ marginLeft: "auto" }}>
+          <span className={`admin-pill admin-pill--${resource.status}`}>{resource.status}</span>
+          <DeleteResourceButton id={resource.id} disabled={!live} />
+        </div>
       </header>
       {sp.saved && <p className="admin-gated admin-gated--ok" role="status">Saved.</p>}
       <ResourceForm resource={resource} live={live} />

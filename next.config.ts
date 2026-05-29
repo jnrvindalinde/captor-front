@@ -10,7 +10,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
     ],
+  },
+  experimental: {
+    serverActions: {
+      // Allow large file uploads through server actions; Cloudinary handles
+      // anything over 100 MB via chunked uploadLarge on the backend.
+      bodySizeLimit: "1gb",
+    },
   },
 };
 

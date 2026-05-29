@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
-import { getBlog, getAllSlugs, blogs } from "../_data";
+import { fetchPublicPost, fetchPublicPosts, mapApiPostToBlogPost } from "@/lib/posts";
+import { getBlog, getAllSlugs, blogs as mockBlogs, type BlogPost } from "../_data";
 import { BlogDetailClient } from "./BlogDetailClient";
 
 interface PageProps {
@@ -11,7 +12,28 @@ interface PageProps {
 
 export default async function BlogDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const blog = getBlog(slug);
+
+  const apiPost = await fetchPublicPost(slug);
+  let blog: BlogPost | undefined = apiPost ? mapApiPostToBlogPost(apiPost) : undefined;
+  let prev: BlogPost | null = null;
+  let next: BlogPost | null = null;
+
+  if (blog) {
+    const apiList = await fetchPublicPosts({ perPage: 100 });
+    const list = (apiList ?? []).map(mapApiPostToBlogPost);
+    const idx = list.findIndex((b) => b.slug === slug);
+    if (idx >= 0) {
+      prev = idx > 0 ? list[idx - 1] : null;
+      next = idx < list.length - 1 ? list[idx + 1] : null;
+    }
+  } else {
+    blog = getBlog(slug);
+    if (blog) {
+      const idx = mockBlogs.findIndex((b) => b.slug === slug);
+      prev = idx > 0 ? mockBlogs[idx - 1] : null;
+      next = idx < mockBlogs.length - 1 ? mockBlogs[idx + 1] : null;
+    }
+  }
 
   if (!blog) {
     return (
@@ -43,10 +65,6 @@ export default async function BlogDetailPage({ params }: PageProps) {
     );
   }
 
-  const currentIndex = blogs.findIndex((b) => b.slug === slug);
-  const prev = currentIndex > 0 ? blogs[currentIndex - 1] : null;
-  const next = currentIndex < blogs.length - 1 ? blogs[currentIndex + 1] : null;
-
   return (
     <div className="blog-detail-page">
       <SiteNav tone="light" />
@@ -61,7 +79,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
 }
 
 export async function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({
-    slug,
-  }));
+  const apiList = await fetchPublicPosts({ perPage: 100 });
+  if (apiList && apiList.length > 0) {
+    return apiList.map((p) => ({ slug: p.slug }));
+  }
+  return getAllSlugs().map((slug) => ({ slug }));
 }

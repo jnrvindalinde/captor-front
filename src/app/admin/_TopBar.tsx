@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { mockLeads, mockClients } from "./_mock";
+import { useNotifications } from "./_NotificationsContext";
 
 type Crumb = { label: string; href: string };
 
@@ -115,6 +116,7 @@ export function AdminTopBar({
   const [avatarOpen, setAvatarOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
+  const { items: notifItems } = useNotifications();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -163,12 +165,34 @@ export function AdminTopBar({
             }}
           >
             <BellIcon />
-            <span className="admin-topbar__badge" aria-hidden>•</span>
+            {notifItems.length > 0 && (
+              <span className="admin-topbar__badge admin-topbar__badge--count" aria-hidden>
+                {notifItems.length > 9 ? "9+" : notifItems.length}
+              </span>
+            )}
           </button>
           {notifOpen && (
-            <div className="admin-popover" role="menu">
+            <div className="admin-popover admin-popover--notif" role="menu">
               <div className="admin-popover__head">Notifications</div>
-              <div className="admin-popover__empty">You're all caught up.</div>
+              {notifItems.length === 0 ? (
+                <div className="admin-popover__empty">You&apos;re all caught up.</div>
+              ) : (
+                <ul className="admin-popover__list">
+                  {notifItems.map((n) => (
+                    <li key={n.id} className="admin-popover__item">
+                      {n.source && (
+                        <Link href={`/admin/leads/${n.source.leadUuid}`} className="admin-popover__item-src">
+                          {n.source.leadName}
+                        </Link>
+                      )}
+                      <p className="admin-popover__item-body">{n.body}</p>
+                      <span className="admin-popover__item-time" suppressHydrationWarning>
+                        {new Date(n.created_at).toLocaleString()}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>

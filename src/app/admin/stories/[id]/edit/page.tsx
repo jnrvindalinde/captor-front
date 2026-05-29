@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { mockStories, type Story } from "../../../_mock";
-import { StoryForm } from "../../_form";
+import { StoryForm, DeleteStoryButton } from "../../_form";
 
 export const metadata = { title: "Edit story · Captor admin" };
 
@@ -31,13 +31,19 @@ export default async function EditStoryPage({
 
   return (
     <div className="admin-page">
-      <header className="admin-page__head">
+      <header
+        className="admin-page__head"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}
+      >
         <div>
           <Link href="/admin/stories" className="admin-link">← Back to stories</Link>
-          <h1 className="h2">{story.title}</h1>
+          <h1 className="admin-page__title">{story.title}</h1>
           <p className="admin-muted admin-muted--sm">/{story.slug} · {story.person_name}</p>
         </div>
-        <span className={`admin-pill admin-pill--${story.status}`}>{story.status}</span>
+        <div className="admin-actions" style={{ marginLeft: "auto", display: "flex", gap: "0.75rem", alignItems: "center" }}>
+          <span className={`admin-pill admin-pill--${story.status}`}>{story.status}</span>
+          <DeleteStoryButton id={story.id} disabled={!live} />
+        </div>
       </header>
       {sp.saved && <p className="admin-gated admin-gated--ok" role="status">Saved.</p>}
       <StoryForm story={story} live={live} />
