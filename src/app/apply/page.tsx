@@ -1,12 +1,14 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useTransition } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Section } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { submitApplicationAction } from "@/app/actions/publicForms";
 
 /* ============================== TYPES ============================== */
 
@@ -130,6 +132,7 @@ export default function ApplyPage() {
   const [data, setData] = useState<AppData>(initial);
   const [submitted, setSubmitted] = useState(false);
   const [stepError, setStepError] = useState<string | null>(null);
+  const [submitting, startSubmitting] = useTransition();
 
   /* URL hash <-> step (refresh / back safe) */
   useEffect(() => {
@@ -244,23 +247,55 @@ export default function ApplyPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const err = validatePanel(4, SUB_COUNT[4] - 1);
-    if (err) {
-      setStepError(err);
-      return;
+    // Run every panel's validator so users who jumped directly to the final
+    // step (via deep link / progress rail) still get a clear inline error
+    // instead of a generic 422 from the backend.
+    for (let n = 1; n <= STEPS.length; n++) {
+      for (let s = 0; s < SUB_COUNT[n]; s++) {
+        const err = validatePanel(n, s);
+        if (err) {
+          setStep(n);
+          setSub(s);
+          setStepError(err);
+          return;
+        }
+      }
     }
-    // TODO: wire to a real backend. Files would need pre-signed upload or
-    // multipart POST to a server route.
-    // eslint-disable-next-line no-console
-    console.log("[Apply] submission", {
-      ...data,
-      files: data.files.map((f) => ({ name: f.name, size: f.size, type: f.type })),
+    setStepError(null);
+
+    const fd = new FormData();
+    fd.append("name", data.name);
+    fd.append("email", data.email);
+    if (data.phone) fd.append("phone", data.phone);
+    if (data.source) fd.append("source", data.source);
+    fd.append("newsletter", data.newsletter ? "1" : "0");
+    if (data.status) fd.append("status_self", data.status);
+    if (data.statusOther) fd.append("status_other", data.statusOther);
+    fd.append("location", data.location);
+    fd.append("field", data.field);
+    if (data.goal) fd.append("goal", data.goal);
+    if (data.goalOther) fd.append("goal_other", data.goalOther);
+    data.targets.forEach((t) => fd.append("targets[]", t));
+    if (data.timeline) fd.append("timeline", data.timeline);
+    if (data.budget) fd.append("budget", data.budget);
+    if (data.story) fd.append("story", data.story);
+    data.files.forEach((f) => fd.append("files[]", f, f.name));
+
+    startSubmitting(async () => {
+      const r = await submitApplicationAction(fd);
+      if (!r.ok) {
+        // Surface the first validator error so the user sees a concrete field name.
+        const firstFieldError =
+          r.errors && Object.values(r.errors)[0]?.[0];
+        setStepError(firstFieldError ?? r.message);
+        return;
+      }
+      setSubmitted(true);
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", "#thanks");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     });
-    setSubmitted(true);
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", "#thanks");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
   }
 
   return (
@@ -297,7 +332,7 @@ export default function ApplyPage() {
             <ProgressRail current={step} onJump={jumpToStep} />
 
             <form
-              className="apply-card"
+              className="apply-formcard"
               onSubmit={(e) => {
                 if (!isLastPanel()) {
                   e.preventDefault();
@@ -352,8 +387,8 @@ export default function ApplyPage() {
                     Continue
                   </Button>
                 ) : (
-                  <Button type="submit" variant="primary" size="md" withArrow>
-                    Submit application
+                  <Button type="submit" variant="primary" size="md" withArrow disabled={submitting}>
+                    {submitting ? "Submitting…" : "Submit application"}
                   </Button>
                 )}
               </div>
@@ -364,6 +399,7 @@ export default function ApplyPage() {
         )}
       </Section>
 
+      <CmsInjectedSections slug="apply-before-footer" />
       <Footer />
     </main>
   );
@@ -640,9 +676,35 @@ function Step2Targets({ data, update }: StepProps) {
             }}
             onBlur={addChip}
           />
+          {/* Mobile keyboards rarely surface a clear "add" affordance for
+              free-form chip input. A check button next to the field gives
+              touch users an obvious one-tap way to confirm the current
+              value as a chip and clear the input ready for the next. */}
+          <button
+            type="button"
+            className="apply-chip-add"
+            onClick={addChip}
+            disabled={!chip.trim()}
+            aria-label="Add this entry"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </button>
         </div>
         <span className="apply-helper">
-          Press Enter or comma to add. Leave blank if you&apos;re still mapping options.
+          Press Enter, comma, or tap the check to add. Leave blank if you&apos;re still
+          mapping options.
         </span>
       </label>
     </>

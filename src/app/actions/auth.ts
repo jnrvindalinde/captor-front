@@ -43,9 +43,18 @@ export async function loginAction(
 
   await setSessionToken(result.token);
 
-  // Role-based landing: admins go to /admin; future client roles can branch here.
-  const target = ["admin", "super_admin"].includes(result.user.role) ? "/admin" : "/";
-  redirect(target);
+  // Honor ?next=… from the middleware bounce, but only if it's a safe local
+  // path (starts with "/" and not "//" or "/\"). Otherwise role-route.
+  const requestedNext = String(formData.get("next") ?? "").trim();
+  const safeNext =
+    requestedNext.startsWith("/") &&
+    !requestedNext.startsWith("//") &&
+    !requestedNext.startsWith("/\\")
+      ? requestedNext
+      : null;
+
+  const roleHome = ["admin", "super_admin"].includes(result.user.role) ? "/admin" : "/";
+  redirect(safeNext ?? roleHome);
 }
 
 export async function logoutAction(): Promise<void> {

@@ -50,6 +50,16 @@ const GROUPS: Group[] = [
       { href: "/admin/stories", label: "Stories", match: (p) => p.startsWith("/admin/stories") },
     ],
   },
+  {
+    label: "CMS",
+    items: [
+      { href: "/admin/cms/media", label: "Media library", match: (p) => p.startsWith("/admin/cms/media") },
+      { href: "/admin/cms/collections", label: "Collections", match: (p) => p.startsWith("/admin/cms/collections") },
+      { href: "/admin/cms/pages", label: "Pages", match: (p) => p.startsWith("/admin/cms/pages") },
+      { href: "/admin/cms/menus", label: "Navigation", match: (p) => p.startsWith("/admin/cms/menus") },
+      { href: "/admin/cms/globals", label: "Site globals", match: (p) => p.startsWith("/admin/cms/globals") },
+    ],
+  },
 ];
 
 export function AdminSideNav() {

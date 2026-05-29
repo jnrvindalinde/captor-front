@@ -41,6 +41,11 @@ export type DataTableProps<Row, K extends string = string> = {
   emptyMessage?: ReactNode;
   /** Show simple search box that filters across visible columns' text. */
   searchable?: boolean;
+  /** Controlled search query. */
+  query?: string;
+  /** Initial uncontrolled search query. */
+  defaultQuery?: string;
+  onQueryChange?: (q: string) => void;
   /** Optional pre-search filter applied to rows. */
   filter?: (row: Row) => boolean;
 };
@@ -70,6 +75,9 @@ export function DataTable<Row, K extends string = string>({
   rowHref,
   emptyMessage = "No records to show.",
   searchable,
+  query: queryProp,
+  defaultQuery,
+  onQueryChange,
   filter,
 }: DataTableProps<Row, K>) {
   const router = useRouter();
@@ -82,7 +90,12 @@ export function DataTable<Row, K extends string = string>({
     else setInternalTab(k);
   };
 
-  const [query, setQuery] = useState("");
+  const [internalQuery, setInternalQuery] = useState(defaultQuery ?? "");
+  const query = queryProp ?? internalQuery;
+  const setQuery = (q: string) => {
+    if (onQueryChange) onQueryChange(q);
+    else setInternalQuery(q);
+  };
 
   const visibleRows = useMemo(() => {
     let r = rows;

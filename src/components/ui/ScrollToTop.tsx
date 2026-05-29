@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 export function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false);
+  const t = useTranslations("scrollToTop");
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -37,7 +39,7 @@ export function ScrollToTop() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 10 }}
           transition={{ duration: 0.3 }}
-          aria-label="Scroll to top"
+          aria-label={t("label")}
           type="button"
         >
           <svg

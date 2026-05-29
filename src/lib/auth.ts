@@ -1,7 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { apiFetch } from "@/lib/api";
-import { getSessionToken } from "@/lib/session";
+import { apiFetch, type ApiError } from "@/lib/api";
+import { clearSession, getSessionToken } from "@/lib/session";
 
 export type AuthUser = {
   id: number;
@@ -18,7 +18,13 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
     const { user } = await apiFetch<{ user: AuthUser }>("/api/auth/me");
     return user;
-  } catch {
+  } catch (e) {
+    // If the backend says the token is invalid/expired, drop the stale cookie
+    // so we don't loop through middleware → layout → /me on every request.
+    const err = e as Partial<ApiError>;
+    if (err?.status === 401 || err?.status === 419) {
+      await clearSession();
+    }
     return null;
   }
 }

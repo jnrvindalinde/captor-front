@@ -4,10 +4,14 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Container } from "@/components/layout/Section";
 import { ButtonLink } from "@/components/ui/Button";
-import { GlobeIcon } from "@/components/ui/Icons";
+import { LanguageButton } from "@/components/ui/LanguageButton";
 import { siteNavLinks, type NavLinkItem } from "./navLinks";
+import { fetchPublicMenu } from "@/lib/cms/menusClient";
+import { MobileNavDrawer } from "./MobileNavDrawer";
 
 export type SiteNavTone = "dark" | "light";
 
@@ -21,8 +25,8 @@ type SiteNavProps = {
   links?: SiteNavLink[];
   /** Brand link target. */
   homeHref?: string;
-  /** Apply CTA target. */
-  applyHref?: string;
+  /** Login CTA target — single sign-in for admins + (soon) clients. */
+  loginHref?: string;
   className?: string;
 };
 
@@ -63,17 +67,20 @@ function NavLinks({
   links: SiteNavLink[];
   pathname: string;
 }) {
+  const t = useTranslations("nav");
+  const desktopLinks = links.filter((link) => link.key !== "home");
   return (
     <div className="nav__links">
-      {links.map((link) => {
+      {desktopLinks.map((link) => {
         const active = link.active ?? isLinkActive(link.href, pathname);
         return (
           <Link
-            key={`${link.href}-${link.label}`}
+            key={`${link.href}-${link.key}`}
             href={link.href}
+            target={link.target ?? "_self"}
             aria-current={active ? "page" : undefined}
           >
-            {link.label}
+            {link.label ?? t(link.key)}
           </Link>
         );
       })}
@@ -82,38 +89,93 @@ function NavLinks({
 }
 
 function NavActions({
-  applyHref,
+  loginHref,
   tone,
 }: {
-  applyHref: string;
+  loginHref: string;
   tone: SiteNavTone;
 }) {
+  const t = useTranslations("common");
   return (
     <div className="nav__right">
-      <button className="lang-btn" type="button" aria-label="Language">
-        <GlobeIcon />
-        <span>En</span>
-      </button>
+      <LanguageButton />
       <ButtonLink
-        href={applyHref}
+        href={loginHref}
         variant={tone === "light" ? "secondary" : "primary"}
         size="sm"
         withArrow
       >
-        Apply
+        {t("login")}
       </ButtonLink>
     </div>
   );
 }
 
+/**
+ * Burger trigger shown at < 980px to open the mobile nav drawer.
+ * Visible from the same breakpoint where `.nav__links` collapses to hidden.
+ */
+function BurgerButton({
+  open,
+  onClick,
+  buttonRef,
+}: {
+  open: boolean;
+  onClick: () => void;
+  buttonRef: React.RefObject<HTMLButtonElement | null>;
+}) {
+  const t = useTranslations("mobileNav");
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      className="nav__burger"
+      aria-label={open ? t("closeLabel") : t("openLabel")}
+      aria-expanded={open}
+      aria-controls="mobile-nav-drawer"
+      onClick={onClick}
+    >
+      <span className="nav__burger-bar" />
+      <span className="nav__burger-bar" />
+      <span className="nav__burger-bar" />
+    </button>
+  );
+}
+
 export function SiteNav({
   tone = "light",
-  links = siteNavLinks,
+  links: linksProp,
   homeHref = "/",
-  applyHref = "/apply",
+  loginHref = "/login",
   className,
 }: SiteNavProps) {
   const pathname = usePathname() ?? "/";
+  const locale = useLocale() as "en" | "fr";
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const burgerRef = useRef<HTMLButtonElement | null>(null);
+
+  const [cmsLinks, setCmsLinks] = useState<SiteNavLink[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicMenu("primary")
+      .then((menu) => {
+        if (cancelled || !menu || !menu.items.length) return;
+        const resolved: SiteNavLink[] = menu.items
+          .filter((i) => i.visible)
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((i) => ({
+            href: i.href,
+            key: i.uuid,
+            label: i.label[locale] ?? i.label.en ?? "",
+            target: i.target,
+          }));
+        setCmsLinks(resolved);
+      })
+      .catch(() => { /* fall back to hardcoded */ });
+    return () => { cancelled = true; };
+  }, [locale]);
+
+  const links = linksProp ?? cmsLinks ?? siteNavLinks;
 
   return (
     <div className={classes("site-nav-row", className)}>
@@ -127,9 +189,21 @@ export function SiteNav({
         >
           <Brand href={homeHref} tone={tone} />
           <NavLinks links={links} pathname={pathname} />
-          <NavActions applyHref={applyHref} tone={tone} />
+          <NavActions loginHref={loginHref} tone={tone} />
+          <BurgerButton
+            open={drawerOpen}
+            onClick={() => setDrawerOpen((v) => !v)}
+            buttonRef={burgerRef}
+          />
         </motion.nav>
       </Container>
+      <MobileNavDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        links={links}
+        loginHref={loginHref}
+        triggerRef={burgerRef}
+      />
     </div>
   );
 }

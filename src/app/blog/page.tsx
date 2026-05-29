@@ -1,30 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 import { blogs } from "./_data";
 
 export default function BlogPage() {
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [activeTag, setActiveTag] = useState<string>("All");
-
-  // Build the tag list with counts once per render. "All" is always first.
-  const tags = useMemo(() => {
-    const counts = new Map<string, number>();
-    blogs.forEach((b) => b.tags.forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1)));
-    const entries = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
-    return [{ label: "All", count: blogs.length }, ...entries.map(([label, count]) => ({ label, count }))];
-  }, []);
-
-  const filteredBlogs = useMemo(
-    () => (activeTag === "All" ? blogs : blogs.filter((b) => b.tags.includes(activeTag))),
-    [activeTag],
-  );
+  const filteredBlogs = activeTag === "All" ? blogs : blogs.filter((b) => b.tags?.includes(activeTag));
 
   return (
     <div className="blog-page">
@@ -47,21 +36,6 @@ export default function BlogPage() {
       {/* View Toggle */}
       <Container>
         <div className="blog-controls">
-          <div className="blog-filters" role="tablist" aria-label="Filter posts by tag">
-            {tags.map((t) => (
-              <button
-                key={t.label}
-                type="button"
-                role="tab"
-                aria-selected={activeTag === t.label}
-                className={`blog-filter ${activeTag === t.label ? "is-active" : ""}`}
-                onClick={() => setActiveTag(t.label)}
-              >
-                <span>{t.label}</span>
-                <span className="blog-filter__count">{t.count}</span>
-              </button>
-            ))}
-          </div>
           <div className="blog-view-toggle">
             <button
               className={`view-toggle-btn ${viewMode === "card" ? "active" : ""}`}
@@ -142,13 +116,6 @@ export default function BlogPage() {
                       />
                     </div>
                     <div className="blog-card__content">
-                      <div className="blog-card__categories">
-                        {blog.tags.slice(0, 2).map((tag) => (
-                          <span key={tag} className="blog-card__category">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
                       <div className="blog-card__meta">
                         <time>{blog.date}</time>
                         <span>·</span>
@@ -194,13 +161,6 @@ export default function BlogPage() {
                       />
                     </div>
                     <div className="blog-list-item__content">
-                      <div className="blog-list-item__categories">
-                        {blog.tags.map((tag) => (
-                          <span key={tag} className="blog-list-item__category">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
                       <h3 className="blog-list-item__title">{blog.title}</h3>
                       <p className="blog-list-item__excerpt">{blog.excerpt}</p>
                       <div className="blog-list-item__footer">
@@ -223,6 +183,7 @@ export default function BlogPage() {
         </AnimatePresence>
       </Container>
 
+      <CmsInjectedSections slug="blog-before-footer" />
       <Footer />
     </div>
   );

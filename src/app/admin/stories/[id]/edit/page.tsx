@@ -1,13 +1,32 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { mockStories } from "../../../_mock";
+import { apiFetch } from "@/lib/api";
+import { mockStories, type Story } from "../../../_mock";
 import { StoryForm } from "../../_form";
 
 export const metadata = { title: "Edit story · Captor admin" };
 
-export default async function EditStoryPage({ params }: { params: Promise<{ id: string }> }) {
+async function loadStory(id: number): Promise<{ story: Story | null; live: boolean }> {
+  try {
+    const r = await apiFetch<{ story: Story }>(`/api/admin/stories/${id}`);
+    return { story: r.story, live: true };
+  } catch (e) {
+    const err = e as { status?: number };
+    if (err?.status === 404) return { story: null, live: true };
+    return { story: mockStories.find((s) => s.id === id) ?? null, live: false };
+  }
+}
+
+export default async function EditStoryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ saved?: string }>;
+}) {
   const { id } = await params;
-  const story = mockStories.find((s) => s.id === Number(id));
+  const sp = (await searchParams) ?? {};
+  const { story, live } = await loadStory(Number(id));
   if (!story) notFound();
 
   return (
@@ -20,7 +39,8 @@ export default async function EditStoryPage({ params }: { params: Promise<{ id: 
         </div>
         <span className={`admin-pill admin-pill--${story.status}`}>{story.status}</span>
       </header>
-      <StoryForm story={story} />
+      {sp.saved && <p className="admin-gated admin-gated--ok" role="status">Saved.</p>}
+      <StoryForm story={story} live={live} />
     </div>
   );
 }

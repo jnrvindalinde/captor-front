@@ -2,9 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
+import { mockLeads, mockClients } from "./_mock";
 
 type Crumb = { label: string; href: string };
+
+/**
+ * Live breadcrumb-label registry. Detail pages call `setBreadcrumbLabel(uuid, name)`
+ * after fetching from the API so the topbar shows e.g. "Richard Somda" instead of
+ * a raw UUID. Falls back to the mock lookups (and then to the prettified segment)
+ * when no live entry has been registered yet.
+ */
+const breadcrumbLabels = new Map<string, string>();
+const breadcrumbListeners = new Set<() => void>();
+let breadcrumbVersion = 0;
+
+export function setBreadcrumbLabel(segment: string, label: string): void {
+  if (!segment || !label) return;
+  if (breadcrumbLabels.get(segment) === label) return;
+  breadcrumbLabels.set(segment, label);
+  breadcrumbVersion += 1;
+  breadcrumbListeners.forEach((l) => l());
+}
+
+function subscribeBreadcrumbs(listener: () => void): () => void {
+  breadcrumbListeners.add(listener);
+  return () => breadcrumbListeners.delete(listener);
+}
+
+function getBreadcrumbVersion(): number {
+  return breadcrumbVersion;
+}
 
 const LABELS: Record<string, string> = {
   admin: "Admin",
@@ -29,13 +57,33 @@ function toLabel(segment: string): string {
   return segment.charAt(0).toUpperCase() + segment.slice(1);
 }
 
+/**
+ * Resolve a dynamic segment (e.g. uuid) to a human label based on its parent.
+ * Returns null if no override applies; the caller falls back to toLabel().
+ */
+function resolveDynamicLabel(parent: string | undefined, segment: string): string | null {
+  const live = breadcrumbLabels.get(segment);
+  if (live) return live;
+  if (parent === "leads") {
+    const lead = mockLeads.find((l) => l.uuid === segment);
+    if (lead) return lead.name;
+  }
+  if (parent === "clients") {
+    const client = mockClients.find((c) => c.uuid === segment);
+    if (client) return client.name;
+  }
+  return null;
+}
+
 function buildCrumbs(pathname: string): Crumb[] {
   const parts = pathname.split("/").filter(Boolean);
   const crumbs: Crumb[] = [];
   let acc = "";
-  for (const part of parts) {
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
     acc += "/" + part;
-    crumbs.push({ label: toLabel(part), href: acc });
+    const dynamic = resolveDynamicLabel(parts[i - 1], part);
+    crumbs.push({ label: dynamic ?? toLabel(part), href: acc });
   }
   // When on the admin root, treat the dashboard as the current page.
   if (pathname === "/admin") {
@@ -59,6 +107,8 @@ export function AdminTopBar({
   user: { name: string; email: string };
 }) {
   const pathname = usePathname() || "/admin";
+  // Re-render when a detail page registers a live breadcrumb label.
+  useSyncExternalStore(subscribeBreadcrumbs, getBreadcrumbVersion, getBreadcrumbVersion);
   const crumbs = buildCrumbs(pathname);
 
   const [notifOpen, setNotifOpen] = useState(false);

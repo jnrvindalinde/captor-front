@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DataTable, type DataTableColumn, type DataTableTab } from "@/components/ui/DataTable";
 import { mockLeads, type Lead, type LeadKind, type LeadStatus } from "../_mock";
 
-type TabKey = "all" | LeadKind;
+type TabKey = "all" | LeadKind | "lost";
 
 const tabLabels: Record<TabKey, string> = {
   all: "All leads",
   application: "Applications",
   org: "Org inquiries",
   contact: "Contact messages",
+  lost: "Archived",
 };
 
 const kindLabels: Record<LeadKind, string> = {
@@ -52,10 +53,29 @@ function fmtRelative(iso: string, nowMs: number) {
 }
 
 function isTabKey(v: string | null): v is TabKey {
-  return v === "all" || v === "application" || v === "org" || v === "contact";
+  return (
+    v === "all" ||
+    v === "application" ||
+    v === "org" ||
+    v === "contact" ||
+    v === "lost"
+  );
 }
 
-export function LeadsManager() {
+export type LeadsManagerProps = {
+  initialLeads?: Lead[];
+  initialCounts?: Record<TabKey, number>;
+  live?: boolean;
+  offlineMessage?: string;
+};
+
+export function LeadsManager({
+  initialLeads,
+  initialCounts,
+  live = true,
+  offlineMessage,
+}: LeadsManagerProps = {}) {
+  const leads = initialLeads ?? mockLeads;
   const router = useRouter();
   const search = useSearchParams();
   const router$push = (params: URLSearchParams) => {
@@ -63,15 +83,17 @@ export function LeadsManager() {
     router.replace(`/admin/leads${qs ? `?${qs}` : ""}`, { scroll: false });
   };
 
-  // Initial state from URL (kind → tab; status/assignee → filters)
+  // Initial state from URL (kind → tab; status/assignee/q → filters)
   const initialTab: TabKey = isTabKey(search.get("kind")) ? (search.get("kind") as TabKey) : "all";
   const initialStatus = (search.get("status") as LeadStatus | "") ?? "";
   const initialAssignee = (search.get("assignee") as "" | "mine" | "unassigned") ?? "";
+  const initialQ = search.get("q") ?? "";
 
   const [tab, setTab] = useState<TabKey>(initialTab);
   const [statusFilter, setStatusFilter] = useState<LeadStatus | "">(initialStatus);
   const [assigneeFilter, setAssigneeFilter] =
     useState<"" | "mine" | "unassigned">(initialAssignee);
+  const [q, setQ] = useState<string>(initialQ);
 
   // Sync state → URL so links remain shareable.
   useEffect(() => {
@@ -79,9 +101,10 @@ export function LeadsManager() {
     if (tab !== "all") p.set("kind", tab);
     if (statusFilter) p.set("status", statusFilter);
     if (assigneeFilter) p.set("assignee", assigneeFilter);
+    if (q.trim()) p.set("q", q.trim());
     router$push(p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, statusFilter, assigneeFilter]);
+  }, [tab, statusFilter, assigneeFilter, q]);
 
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -89,21 +112,31 @@ export function LeadsManager() {
   }, []);
 
   const counts = useMemo(() => {
+    if (initialCounts) return initialCounts;
     const c: Record<TabKey, number> = {
-      all: mockLeads.length,
+      all: 0,
       application: 0,
       org: 0,
       contact: 0,
+      lost: 0,
     };
-    for (const l of mockLeads) c[l.kind]++;
+    for (const l of leads) {
+      if (l.status === "lost") {
+        c.lost++;
+        continue;
+      }
+      c.all++;
+      c[l.kind]++;
+    }
     return c;
-  }, []);
+  }, [leads, initialCounts]);
 
   const tabs: DataTableTab<TabKey>[] = [
     { key: "all", label: tabLabels.all, count: counts.all },
     { key: "application", label: tabLabels.application, count: counts.application },
     { key: "org", label: tabLabels.org, count: counts.org },
     { key: "contact", label: tabLabels.contact, count: counts.contact },
+    { key: "lost", label: tabLabels.lost, count: counts.lost },
   ];
 
   const columns: DataTableColumn<Lead>[] = [
@@ -178,9 +211,16 @@ export function LeadsManager() {
     },
   ];
 
-  // Combine all filters in a single predicate.
+  // Combine all filters in a single predicate. Lost leads are archived: they
+  // only show up under the "Archived" tab (or when the user explicitly picks
+  // `lost` from the Status dropdown).
   const filter = (l: Lead) => {
-    if (tab !== "all" && l.kind !== tab) return false;
+    if (tab === "lost") {
+      if (l.status !== "lost") return false;
+    } else {
+      if (tab !== "all" && l.kind !== tab) return false;
+      if (statusFilter !== "lost" && l.status === "lost") return false;
+    }
     if (statusFilter && l.status !== statusFilter) return false;
     if (assigneeFilter === "mine" && !l.assigned_user) return false;
     if (assigneeFilter === "unassigned" && l.assigned_user) return false;
@@ -188,8 +228,8 @@ export function LeadsManager() {
   };
 
   const sortedRows = useMemo(
-    () => [...mockLeads].sort((a, b) => b.created_at.localeCompare(a.created_at)),
-    []
+    () => [...leads].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    [leads]
   );
 
   return (
@@ -197,6 +237,11 @@ export function LeadsManager() {
       <header className="admin-page__head">
         <h1 className="admin-page__title">Leads</h1>
         <p className="lede">All incoming applications, organization inquiries, and contact messages.</p>
+        {!live && (
+          <p className="admin-gated" role="status">
+            {offlineMessage ?? "Backend unavailable — showing demo data."}
+          </p>
+        )}
       </header>
 
       <div className="dt-toolbar">
@@ -223,7 +268,7 @@ export function LeadsManager() {
             <option value="unassigned">Unassigned</option>
           </select>
         </label>
-        {(statusFilter || assigneeFilter || tab !== "all") && (
+        {(statusFilter || assigneeFilter || tab !== "all" || q) && (
           <button
             type="button"
             className="dt-toolbar__reset"
@@ -231,6 +276,7 @@ export function LeadsManager() {
               setStatusFilter("");
               setAssigneeFilter("");
               setTab("all");
+              setQ("");
             }}
           >
             Reset filters
@@ -245,10 +291,12 @@ export function LeadsManager() {
         activeTab={tab}
         onTabChange={setTab}
         searchable
+        query={q}
+        onQueryChange={setQ}
         columns={columns}
         rows={sortedRows}
         rowKey={(l) => l.id}
-        rowHref={(l) => `/admin/leads/${l.id}`}
+        rowHref={(l) => `/admin/leads/${l.uuid}`}
         filter={filter}
         emptyMessage="No leads match these filters."
       />

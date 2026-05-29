@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
 import { RadiusToggle } from "@/components/ui/RadiusToggle";
@@ -23,20 +25,25 @@ export const metadata: Metadata = {
     "Career and education consultancy for students and professionals serious about their next move.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <ScrollToTop />
-        <RadiusToggle />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+          <ScrollToTop />
+          <RadiusToggle />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

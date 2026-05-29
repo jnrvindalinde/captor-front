@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Modal } from "./Modal";
 import { Button } from "@/components/ui/Button";
+import { submitOrgInquiryAction } from "@/app/actions/publicForms";
 
 type OrgInquiryData = {
   about: string;
@@ -39,6 +40,8 @@ export function OrgInquiryModal({
   const [data, setData] = useState<OrgInquiryData>(empty);
   const [submitted, setSubmitted] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   function update<K extends keyof OrgInquiryData>(key: K, value: OrgInquiryData[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -52,10 +55,21 @@ export function OrgInquiryModal({
       return;
     }
     setContactError(null);
-    // TODO: wire to backend (Formspree / API). For now, log + show success.
-    // eslint-disable-next-line no-console
-    console.log("[OrgInquiry] submission", { ...data, contact: { kind, value: data.contact.trim() } });
-    setSubmitted(true);
+    setSubmitError(null);
+    startTransition(async () => {
+      const r = await submitOrgInquiryAction({
+        name: data.name.trim(),
+        role: data.role.trim(),
+        organization: data.organization.trim(),
+        about: data.about.trim(),
+        contact: data.contact.trim(),
+      });
+      if (r.ok) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(r.message);
+      }
+    });
   }
 
   function handleClose() {
@@ -156,8 +170,11 @@ export function OrgInquiryModal({
               <p className="org-form__note">
                 We use what you share only to reply. No newsletters, no resale.
               </p>
-              <Button type="submit" variant="primary" size="md" withArrow>
-                Send inquiry
+              {submitError && (
+                <p className="org-form__error" role="alert">{submitError}</p>
+              )}
+              <Button type="submit" variant="primary" size="md" withArrow disabled={pending}>
+                {pending ? "Sending…" : "Send inquiry"}
               </Button>
             </div>
           </form>

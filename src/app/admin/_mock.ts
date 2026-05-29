@@ -7,6 +7,7 @@ export type ApplicationDecision = "pending" | "approved" | "declined";
 
 export type Lead = {
   id: number;
+  uuid: string;
   kind: LeadKind;
   status: LeadStatus;
   assigned_user?: { id: number; name: string; email: string } | null;
@@ -27,6 +28,12 @@ export type Note = {
   body: string;
   created_at: string;
   author: { id: number; name: string; email: string };
+  /**
+   * Manual notes are written by an admin. System notes are auto-emitted by the
+   * app when lifecycle events fire (decision recorded, status changed, meeting
+   * scheduled). The UI renders them differently and they are read-only.
+   */
+  kind?: "manual" | "system";
 };
 
 export type Meeting = {
@@ -88,6 +95,7 @@ const advisor = { id: 2, name: "Akua Mensah", email: "akua@career360consult.com"
 export const mockLeads: Lead[] = [
   {
     id: 101,
+    uuid: "01a4a1de-0001-4ad0-8e2f-0a1b2c3d4e01",
     kind: "application",
     status: "new",
     assigned_user: null,
@@ -99,11 +107,12 @@ export const mockLeads: Lead[] = [
     tags: ["UK", "PhD"],
     created_at: "2026-05-27T09:12:00Z",
     updated_at: "2026-05-27T09:12:00Z",
-    notes_count: 0,
+    notes_count: 2,
     meetings_count: 0,
   },
   {
     id: 102,
+    uuid: "01a4a1de-0002-4ad0-8e2f-0a1b2c3d4e02",
     kind: "org",
     status: "contacted",
     assigned_user: advisor,
@@ -120,6 +129,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: 103,
+    uuid: "01a4a1de-0003-4ad0-8e2f-0a1b2c3d4e03",
     kind: "contact",
     status: "scheduled",
     assigned_user: admin,
@@ -136,6 +146,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: 104,
+    uuid: "01a4a1de-0004-4ad0-8e2f-0a1b2c3d4e04",
     kind: "application",
     status: "qualified",
     assigned_user: advisor,
@@ -152,6 +163,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: 105,
+    uuid: "01a4a1de-0005-4ad0-8e2f-0a1b2c3d4e05",
     kind: "application",
     status: "won",
     assigned_user: admin,
@@ -168,6 +180,7 @@ export const mockLeads: Lead[] = [
   },
   {
     id: 106,
+    uuid: "01a4a1de-0006-4ad0-8e2f-0a1b2c3d4e06",
     kind: "contact",
     status: "lost",
     assigned_user: null,
@@ -184,10 +197,25 @@ export const mockLeads: Lead[] = [
   },
 ];
 
-export const mockDetails: Record<number, LeadDetail> = {
-  101: {
+export const mockDetails: Record<string, LeadDetail> = {
+  "01a4a1de-0001-4ad0-8e2f-0a1b2c3d4e01": {
     ...mockLeads[0],
-    notes: [],
+    notes: [
+      {
+        id: 101,
+        body: "Application received via the website.",
+        created_at: "2026-05-27T08:12:00Z",
+        author: admin,
+        kind: "system",
+      },
+      {
+        id: 102,
+        body: "Strong CS background — worth a discovery call once approved.",
+        created_at: "2026-05-27T09:05:00Z",
+        author: advisor,
+        kind: "manual",
+      },
+    ],
     meetings: [],
     application: {
       status_self: "graduate-recent",
@@ -211,7 +239,7 @@ export const mockDetails: Record<number, LeadDetail> = {
       ],
     },
   },
-  102: {
+  "01a4a1de-0002-4ad0-8e2f-0a1b2c3d4e02": {
     ...mockLeads[1],
     notes: [
       { id: 1, body: "Replied with an intro deck and the standard discovery questions.", created_at: "2026-05-27T07:00:00Z", author: advisor },
@@ -227,7 +255,7 @@ export const mockDetails: Record<number, LeadDetail> = {
       contact_value: "naa@brightlabs.gh",
     },
   },
-  103: {
+  "01a4a1de-0003-4ad0-8e2f-0a1b2c3d4e03": {
     ...mockLeads[2],
     notes: [
       { id: 3, body: "Called twice, sent Google Calendar invite for the 30-min discovery slot on Saturday.", created_at: "2026-05-26T09:42:00Z", author: admin },
@@ -249,7 +277,7 @@ export const mockDetails: Record<number, LeadDetail> = {
         "Mid-career switch from accounting into product management. I'd like to talk through how realistic a 6-month runway is.",
     },
   },
-  104: {
+  "01a4a1de-0004-4ad0-8e2f-0a1b2c3d4e04": {
     ...mockLeads[3],
     notes: [
       { id: 4, body: "Strong fit. GMAT 720, two scholarship-friendly schools shortlisted.", created_at: "2026-05-25T10:00:00Z", author: advisor },
@@ -288,7 +316,7 @@ export const mockDetails: Record<number, LeadDetail> = {
       ],
     },
   },
-  105: {
+  "01a4a1de-0005-4ad0-8e2f-0a1b2c3d4e05": {
     ...mockLeads[4],
     notes: [
       { id: 7, body: "INSEAD MBA offer signed. Onboarding into alumni cohort.", created_at: "2026-05-24T17:22:00Z", author: admin },
@@ -312,7 +340,7 @@ export const mockDetails: Record<number, LeadDetail> = {
       files: [],
     },
   },
-  106: {
+  "01a4a1de-0006-4ad0-8e2f-0a1b2c3d4e06": {
     ...mockLeads[5],
     notes: [
       { id: 8, body: "No response after three follow-ups over two weeks. Marking lost.", created_at: "2026-05-05T08:00:00Z", author: admin },
@@ -339,6 +367,7 @@ export type ClientProgram =
 
 export type Client = {
   id: number;
+  uuid: string;
   name: string;
   email: string | null;
   phone: string | null;
@@ -373,6 +402,7 @@ export const clientStatusLabels: Record<ClientStatus, string> = {
 export const mockClients: Client[] = [
   {
     id: 9001,
+    uuid: "01a4b2cf-0001-4ad0-9f2f-0a1b2c3d4e01",
     name: "Ama Owusu",
     email: "ama@example.com",
     phone: null,
@@ -388,6 +418,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 9002,
+    uuid: "01a4b2cf-0002-4ad0-9f2f-0a1b2c3d4e02",
     name: "Yaw Boakye",
     email: "yaw@example.com",
     phone: "+233 26 778 1212",
@@ -403,6 +434,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 9003,
+    uuid: "01a4b2cf-0003-4ad0-9f2f-0a1b2c3d4e03",
     name: "BrightLabs Academy",
     email: "naa@brightlabs.gh",
     phone: null,
@@ -418,6 +450,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 9004,
+    uuid: "01a4b2cf-0004-4ad0-9f2f-0a1b2c3d4e04",
     name: "Selasi Komla",
     email: "selasi@example.com",
     phone: null,
@@ -433,6 +466,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 9005,
+    uuid: "01a4b2cf-0005-4ad0-9f2f-0a1b2c3d4e05",
     name: "Kwesi Mensah",
     email: "kwesi@example.com",
     phone: "+233 24 119 4400",
@@ -448,6 +482,7 @@ export const mockClients: Client[] = [
   },
   {
     id: 9006,
+    uuid: "01a4b2cf-0006-4ad0-9f2f-0a1b2c3d4e06",
     name: "Efua Asare",
     email: "efua@example.com",
     phone: null,
@@ -475,7 +510,7 @@ export type DashboardData = {
     contacts: number;
   };
   recent: Lead[];
-  upcoming_meetings: Array<Pick<Lead, "id" | "kind" | "name" | "email" | "scheduled_at">>;
+  upcoming_meetings: Array<Pick<Lead, "id" | "uuid" | "kind" | "name" | "email" | "scheduled_at">>;
 };
 
 export const mockDashboard: DashboardData = {

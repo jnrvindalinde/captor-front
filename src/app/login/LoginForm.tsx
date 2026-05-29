@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/Button";
 
 const initial: LoginState = {};
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, initial);
 
   return (
     <form action={formAction} className="auth-form" noValidate>
+      {next && <input type="hidden" name="next" value={next} />}
       <label className="contact-field">
         <span className="contact-field__label">Email</span>
         <input

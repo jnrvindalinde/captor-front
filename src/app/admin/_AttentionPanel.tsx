@@ -1,25 +1,26 @@
 import Link from "next/link";
-import { mockLeads } from "./_mock";
+import { mockLeads, type Lead } from "./_mock";
 
 type Item = { id: number; title: string; href: string; meta: string };
 
-export function AttentionPanel() {
+export function AttentionPanel({ leads }: { leads?: Lead[] } = {}) {
+  const source = leads ?? mockLeads;
   const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
 
   // 1. New leads with no assignee
-  const newUnassigned: Item[] = mockLeads
+  const newUnassigned: Item[] = source
     .filter((l) => l.status === "new" && !l.assigned_user)
     .map((l) => ({
       id: l.id,
       title: l.name,
-      href: `/admin/leads/${l.id}`,
+      href: `/admin/leads/${l.uuid}`,
       meta: "New · unassigned",
     }));
 
   // 2. Meetings today or tomorrow
-  const upcomingSoon: Item[] = mockLeads
+  const upcomingSoon: Item[] = source
     .filter((l) => {
       if (!l.scheduled_at) return false;
       const d = new Date(l.scheduled_at);
@@ -28,7 +29,7 @@ export function AttentionPanel() {
     .map((l) => ({
       id: l.id,
       title: l.name,
-      href: `/admin/leads/${l.id}`,
+      href: `/admin/leads/${l.uuid}`,
       meta: `Meeting · ${new Date(l.scheduled_at as string).toLocaleString(undefined, {
         weekday: "short",
         hour: "numeric",
@@ -39,12 +40,12 @@ export function AttentionPanel() {
   // 3. Stale "contacted" — sat in contacted for over a week
   const sevenDaysAgo = new Date(now);
   sevenDaysAgo.setDate(now.getDate() - 7);
-  const stale: Item[] = mockLeads
+  const stale: Item[] = source
     .filter((l) => l.status === "contacted" && new Date(l.updated_at) < sevenDaysAgo)
     .map((l) => ({
       id: l.id,
       title: l.name,
-      href: `/admin/leads/${l.id}`,
+      href: `/admin/leads/${l.uuid}`,
       meta: "Contacted · no reply 7d+",
     }));
 

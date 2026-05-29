@@ -45,7 +45,8 @@ function fmtRelative(iso: string, nowMs: number) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function LeadsTable() {
+export function LeadsTable({ rows }: { rows?: Lead[] } = {}) {
+  const source = rows ?? mockLeads;
   const [tab, setTab] = useState<TabKey>("all");
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
@@ -54,14 +55,14 @@ export function LeadsTable() {
 
   const counts = useMemo(() => {
     const c: Record<TabKey, number> = {
-      all: mockLeads.length,
+      all: source.length,
       application: 0,
       org: 0,
       contact: 0,
     };
-    for (const l of mockLeads) c[l.kind]++;
+    for (const l of source) c[l.kind]++;
     return c;
-  }, []);
+  }, [source]);
 
   const tabs: DataTableTab<TabKey>[] = [
     { key: "all", label: tabLabels.all, count: counts.all },
@@ -130,9 +131,9 @@ export function LeadsTable() {
       onTabChange={setTab}
       searchable
       columns={columns}
-      rows={mockLeads}
+      rows={source}
       rowKey={(l) => l.id}
-      rowHref={(l) => `/admin/leads/${l.id}`}
+      rowHref={(l) => `/admin/leads/${l.uuid}`}
       filter={tab === "all" ? undefined : (l) => l.kind === tab}
       emptyMessage="No leads in this view."
     />

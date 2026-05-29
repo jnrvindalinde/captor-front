@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useTransition, type FormEvent } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Section, Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 import { Button, ButtonLink } from "@/components/ui/Button";
+import { submitContactAction } from "@/app/actions/publicForms";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -95,12 +97,29 @@ const faqs = [
 export default function ContactPage() {
   const [topic, setTopic] = useState<Topic>("applications");
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage(null);
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      name: String(fd.get("name") ?? "").trim(),
+      email: String(fd.get("email") ?? "").trim(),
+      topic: (fd.get("topic") ?? topic) as Topic,
+      message: String(fd.get("message") ?? "").trim(),
+    };
     setStatus("sending");
-    // Placeholder — wire to your inbox/CRM later.
-    window.setTimeout(() => setStatus("sent"), 900);
+    startTransition(async () => {
+      const r = await submitContactAction(payload);
+      if (r.ok) {
+        setStatus("sent");
+      } else {
+        setStatus("idle");
+        setErrorMessage(r.message);
+      }
+    });
   };
 
   return (
@@ -300,6 +319,11 @@ export default function ContactPage() {
               By sending, you agree we may reply to the address above. We never
               share your details.
             </p>
+            {errorMessage && (
+              <p className="contact-form__error" role="alert" style={{ color: "#b91c1c" }}>
+                {errorMessage}
+              </p>
+            )}
             <Button
               type="submit"
               variant="primary"
@@ -307,11 +331,7 @@ export default function ContactPage() {
               withArrow
               disabled={status !== "idle"}
             >
-              {status === "sending"
-                ? "Sending…"
-                : status === "sent"
-                  ? "Thank you — we'll be in touch"
-                  : "Send message"}
+              {status === "sending" ? "Sending…" : "Send message"}
             </Button>
           </div>
         </motion.form>
@@ -422,6 +442,7 @@ export default function ContactPage() {
         </motion.div>
       </Section>
 
+      <CmsInjectedSections slug="contact-before-footer" />
       <Footer />
     </main>
   );

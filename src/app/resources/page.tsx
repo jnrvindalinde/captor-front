@@ -7,6 +7,7 @@ import { motion, type Variants } from "framer-motion";
 import { Section, Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 import {
   resources,
   resourceTypeMeta,
@@ -230,6 +231,7 @@ export default function ResourcesPage() {
         )}
       </Section>
 
+      <CmsInjectedSections slug="resources-before-footer" />
       <Footer />
     </div>
   );

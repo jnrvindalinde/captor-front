@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { Section, Container, Container2 } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 
 type StoryCategory = "School" | "Scholarship" | "Job" | "Career";
 
@@ -95,9 +95,6 @@ const stories: ReadonlyArray<{
   },
 ];
 
-type Filter = "All" | StoryCategory;
-const filterOrder: Filter[] = ["All", "School", "Scholarship", "Job", "Career"];
-
 const stagger: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
@@ -109,14 +106,7 @@ const fadeUp: Variants = {
 };
 
 export default function StoriesPage() {
-  const [activeFilter, setActiveFilter] = useState<Filter>("All");
-  const filteredStories = useMemo(
-    () =>
-      activeFilter === "All"
-        ? stories
-        : stories.filter((s) => s.categories.includes(activeFilter)),
-    [activeFilter],
-  );
+  const filteredStories = stories;
 
   return (
     <>
@@ -148,18 +138,6 @@ export default function StoriesPage() {
 
         <Section tight id="all-stories">
           <Container2>
-            <div className="stories-filters">
-              {filterOrder.map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  className={`stories-filter${activeFilter === f ? " is-active" : ""}`}
-                  onClick={() => setActiveFilter(f)}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
             <motion.div
               className="stories-grid"
               variants={stagger}
@@ -203,6 +181,7 @@ export default function StoriesPage() {
           </Container2>
         </Section>
       </main>
+      <CmsInjectedSections slug="stories-before-footer" />
       <Footer />
     </>
   );

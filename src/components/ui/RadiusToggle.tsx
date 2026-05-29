@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Floating dev toggle that flips `data-radius` on <html> between the default
@@ -11,6 +12,7 @@ import { useEffect, useState } from "react";
  */
 export function RadiusToggle() {
   const [sharp, setSharp] = useState(false);
+  const t = useTranslations("radiusToggle");
 
   useEffect(() => {
     const root = document.documentElement;
@@ -23,7 +25,7 @@ export function RadiusToggle() {
       type="button"
       onClick={() => setSharp((v) => !v)}
       aria-pressed={sharp}
-      title="Toggle sharp / rounded design"
+      title={t("title")}
       style={{
         position: "fixed",
         bottom: 20,
@@ -42,7 +44,7 @@ export function RadiusToggle() {
         boxShadow: "0 8px 24px rgba(15,23,42,0.18)",
       }}
     >
-      {sharp ? "Sharp · on" : "Sharp · off"}
+      {sharp ? t("sharpOn") : t("sharpOff")}
     </button>
   );
 }

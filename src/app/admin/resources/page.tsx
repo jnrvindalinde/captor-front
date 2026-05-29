@@ -1,24 +1,48 @@
 import Link from "next/link";
-import { mockResources } from "../_mock";
+import { apiFetch } from "@/lib/api";
+import { mockResources, type ResourceItem } from "../_mock";
 
 export const metadata = { title: "Resources · Captor admin" };
+
+type PaginatedResources = { data: ResourceItem[] };
+
+async function loadResources(qs: URLSearchParams): Promise<{
+  rows: ResourceItem[];
+  live: boolean;
+}> {
+  try {
+    const r = await apiFetch<PaginatedResources>(`/api/admin/resources?${qs.toString()}`);
+    return { rows: r.data, live: true };
+  } catch {
+    return { rows: mockResources, live: false };
+  }
+}
 
 export default async function ResourcesListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; format?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; format?: string; deleted?: string }>;
 }) {
   const sp = await searchParams;
-  const q = (sp.q ?? "").toLowerCase().trim();
+  const q = (sp.q ?? "").trim();
   const status = sp.status ?? "";
   const format = sp.format ?? "";
 
-  const rows = mockResources.filter((r) => {
-    if (status && r.status !== status) return false;
-    if (format && r.format !== format) return false;
-    if (q && !(r.title.toLowerCase().includes(q) || r.slug.toLowerCase().includes(q))) return false;
-    return true;
-  });
+  const qs = new URLSearchParams();
+  qs.set("per_page", "100");
+  if (q) qs.set("q", q);
+  if (status) qs.set("status", status);
+  if (format) qs.set("format", format);
+
+  const { rows: serverRows, live } = await loadResources(qs);
+  const rows = live
+    ? serverRows
+    : serverRows.filter((r) => {
+        if (status && r.status !== status) return false;
+        if (format && r.format !== format) return false;
+        if (q && !(r.title.toLowerCase().includes(q.toLowerCase()) || r.slug.toLowerCase().includes(q.toLowerCase()))) return false;
+        return true;
+      });
 
   return (
     <div className="admin-page">
@@ -30,6 +54,15 @@ export default async function ResourcesListPage({
         </div>
         <Link href="/admin/resources/new" className="admin-btn admin-btn--solid">New resource</Link>
       </header>
+
+      {!live && (
+        <p className="admin-gated" role="status">
+          Backend unavailable — showing seed/mock resources. Changes won&apos;t persist.
+        </p>
+      )}
+      {sp.deleted && (
+        <p className="admin-gated admin-gated--ok" role="status">Resource deleted.</p>
+      )}
 
       <form className="admin-filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder="Search…" />

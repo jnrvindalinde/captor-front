@@ -69,9 +69,22 @@ function isTabKey(v: string | null): v is TabKey {
   );
 }
 
-export function ClientsManager() {
+export type ClientCounts = Record<TabKey, number>;
+
+export interface ClientsManagerProps {
+  initialClients?: Client[];
+  initialCounts?: Partial<ClientCounts>;
+  live?: boolean;
+}
+
+export function ClientsManager({
+  initialClients,
+  initialCounts,
+  live = true,
+}: ClientsManagerProps = {}) {
   const router = useRouter();
   const search = useSearchParams();
+  const data = initialClients ?? mockClients;
   const initialTab: TabKey = isTabKey(search.get("status")) ? (search.get("status") as TabKey) : "all";
   const initialProgram = (search.get("program") as ClientProgram | "") ?? "";
   const initialConsultant = (search.get("consultant") as "" | "assigned" | "unassigned") ?? "";
@@ -96,16 +109,22 @@ export function ClientsManager() {
 
   const counts = useMemo(() => {
     const c: Record<TabKey, number> = {
-      all: mockClients.length,
+      all: data.length,
       active: 0,
       onboarding: 0,
       on_hold: 0,
       completed: 0,
       churned: 0,
     };
-    for (const cl of mockClients) c[cl.status]++;
+    for (const cl of data) c[cl.status]++;
+    if (initialCounts) {
+      for (const k of Object.keys(initialCounts) as TabKey[]) {
+        const v = initialCounts[k];
+        if (typeof v === "number") c[k] = v;
+      }
+    }
     return c;
-  }, []);
+  }, [data, initialCounts]);
 
   const tabs: DataTableTab<TabKey>[] = [
     { key: "all", label: tabLabels.all, count: counts.all },
@@ -193,8 +212,8 @@ export function ClientsManager() {
   };
 
   const sortedRows = useMemo(
-    () => [...mockClients].sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
-    []
+    () => [...data].sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
+    [data]
   );
 
   return (
@@ -202,6 +221,11 @@ export function ClientsManager() {
       <header className="admin-page__head">
         <h1 className="admin-page__title">Clients</h1>
         <p className="lede">Active engagements and the consultants delivering them.</p>
+        {!live && (
+          <p className="admin-gated" role="status">
+            Backend unavailable — showing mock clients.
+          </p>
+        )}
       </header>
 
       <div className="dt-toolbar">
@@ -255,7 +279,7 @@ export function ClientsManager() {
         columns={columns}
         rows={sortedRows}
         rowKey={(c) => c.id}
-        rowHref={(c) => `/admin/clients/${c.id}`}
+        rowHref={(c) => `/admin/clients/${c.uuid}`}
         filter={filter}
         emptyMessage="No clients match these filters."
       />

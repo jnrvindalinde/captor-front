@@ -1,0 +1,368 @@
+{
+  "_review": {
+    "_note": "Machine-translated starter values. Every key needs a native-speaker pass; see docs/site-buildout-plan.md Phase B for the workflow.",
+    "pending": ["**"]
+  },
+  "common": {
+    "login": "Connexion",
+    "language": "Langue",
+    "readMore": "Lire la suite",
+    "apply": "Postuler"
+  },
+  "nav": {
+    "home": "Accueil",
+    "services": "Services",
+    "stories": "Témoignages",
+    "placements": "Placements",
+    "resources": "Ressources",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "mobileNav": {
+    "title": "Menu",
+    "openLabel": "Ouvrir le menu",
+    "closeLabel": "Fermer le menu",
+    "primaryAriaLabel": "Navigation mobile principale"
+  },
+  "footer": {
+    "tagline": "Un cabinet de conseil en carrière et en éducation reliant candidats, conseillers et établissements — sur dossier, depuis 2014.",
+    "columns": {
+      "explore": {
+        "heading": "Explorer",
+        "home": "Accueil",
+        "services": "Services",
+        "placements": "Placements",
+        "stories": "Témoignages"
+      },
+      "resources": {
+        "heading": "Ressources",
+        "guides": "Guides & introductions",
+        "blog": "Notes de terrain",
+        "howItWorks": "Comment ça marche"
+      },
+      "reach": {
+        "heading": "Nous joindre",
+        "startConversation": "Démarrer une conversation",
+        "email": "hello@career360consult.com",
+        "address": "17 Independence Ave, Accra"
+      }
+    },
+    "copyright": "© {year} Career 360 Consult.",
+    "rights": "Tous droits réservés."
+  },
+  "marquee": {
+    "ariaLabel": "Ils nous font confiance"
+  },
+  "scrollToTop": {
+    "label": "Revenir en haut"
+  },
+  "radiusToggle": {
+    "title": "Basculer entre design net et arrondi",
+    "sharpOn": "Net · activé",
+    "sharpOff": "Net · désactivé"
+  },
+  "modal": {
+    "closeLabel": "Fermer la fenêtre"
+  },
+  "home": {
+    "hero": {
+      "title": "Votre <em>avenir</em> mérite<br></br>un <em>vrai</em> plan.",
+      "lede": "Career 360 Consult est un cabinet de conseil en carrière et en éducation pour les étudiants et professionnels qui prennent au sérieux leur prochaine étape — reliant candidats, conseillers et établissements dans un même environnement d'accompagnement.",
+      "cta": "Démarrer votre candidature",
+      "trustAriaLabel": "Pourquoi candidater chez nous",
+      "trust": {
+        "senior": "Conseillers seniors uniquement",
+        "noUpfront": "Aucun paiement à l'avance",
+        "freeReview": "Première revue gratuite"
+      }
+    },
+    "why": {
+      "kicker": "Pourquoi Career 360",
+      "title": "Bâti sur des conversations <em>qualifiées</em>.",
+      "lede": "Nous avons remplacé la prise de rendez-vous instantanée par un processus de candidature plus posé. Les personnes que nous rencontrons arrivent préparées, et nous aussi."
+    },
+    "reasons": {
+      "advisory": {
+        "title": "Conseil sur candidature",
+        "copy": "Nous ne prenons pas de visites spontanées. Chaque consultation commence par un dossier structuré, afin que le temps passé avec votre conseiller soit ciblé, préparé et orienté résultats."
+      },
+      "specialists": {
+        "title": "Spécialistes carrière et éducation",
+        "copy": "Douze ans à accompagner les étudiants ghanéens vers les meilleures universités, les bourses et les carrières internationales. Vous obtenez un avis de senior, pas un conseil web générique."
+      },
+      "endToEnd": {
+        "title": "Accompagnement de bout en bout",
+        "copy": "De la présélection à l'admission, du dossier de bourse à l'entretien de visa — un seul cabinet vous suit sur tout le parcours."
+      }
+    },
+    "howItWorks": {
+      "kicker": "— Comment ça marche",
+      "title": "Trois étapes, de la <em>demande</em> à la séance confirmée."
+    },
+    "steps": {
+      "submit": {
+        "title": "Déposez votre dossier",
+        "copy": "Parlez-nous de vos objectifs, de votre parcours et de la décision que vous préparez. Six minutes, structurées et confidentielles."
+      },
+      "review": {
+        "title": "Nous évaluons et qualifions",
+        "copy": "Notre équipe étudie votre contexte sous 48 heures et confirme si une consultation est la bonne prochaine étape."
+      },
+      "meet": {
+        "title": "Rencontrez votre conseiller",
+        "copy": "Si validé, vous recevez une invitation calendrier et un lien Google Meet pour votre séance individuelle d'accompagnement."
+      }
+    },
+    "services": {
+      "kicker": "— Les plus demandés",
+      "title": "Là où nous donnons le <em>meilleur</em> de nous-mêmes.",
+      "lede": "Choisissez le domaine le plus proche de votre objectif. Chaque mission commence pareil — une courte candidature, une vraie revue, puis une vraie séance.",
+      "applyCta": "Postuler pour ce service",
+      "items": {
+        "admissions": {
+          "title": "Admissions universitaires",
+          "copy": "Présélection, stratégie de candidature, coaching du personal statement et accompagnement décisionnel pour les études de premier et de second cycle."
+        },
+        "scholarship": {
+          "title": "Stratégie de bourse",
+          "copy": "Analyse d'adéquation au financement, relecture d'essais et préparation aux entretiens pour Chevening, Mastercard Foundation, Commonwealth et Fulbright."
+        },
+        "career": {
+          "title": "Transition de carrière",
+          "copy": "Repositionnement, stratégie CV et préparation aux entretiens pour les professionnels qui changent de secteur, de pays ou de niveau de séniorité."
+        }
+      }
+    },
+    "corp": {
+      "title": "Vous construisez une équipe ? Nous travaillons aussi avec les <em>organisations</em>.",
+      "copy": "Programmes d'intégration, mobilité interne, transitions de direction. Même processus orienté candidature, adapté à votre organisation.",
+      "cta": "Parlons-en"
+    },
+    "storiesSection": {
+      "kicker": "— Témoignages",
+      "title": "De vraies <em>personnes</em>,<br></br>de vrais résultats.",
+      "lede": "Une petite sélection de clients récents. Noms abrégés pour préserver leur vie privée ; résultats confirmés par les candidats eux-mêmes."
+    },
+    "storiesCarousel": {
+      "pagesAriaLabel": "Pages de témoignages",
+      "pageLabel": "Page {n} sur {total}",
+      "prevLabel": "Témoignages précédents",
+      "nextLabel": "Témoignages suivants"
+    },
+    "stories": {
+      "akosua-b": {
+        "quote": "Je suis arrivée hésitant entre deux voies professionnelles et je suis repartie avec un plan d'un an qui me ressemblait enfin. Le conseil était pratique, bienveillant, jamais générique.",
+        "outcome": "Carrière repositionnée",
+        "role": "Professionnelle en mi-carrière · Accra"
+      },
+      "kwadwo-m": {
+        "quote": "Ils m'ont aidé à façonner un SOP qui me ressemblait vraiment, puis m'ont accompagné à chaque étape de ma candidature Mastercard Foundation jusqu'à l'offre.",
+        "outcome": "Entièrement financé — Mastercard",
+        "role": "MSc Santé publique · Édimbourg, 2025"
+      },
+      "nana-a": {
+        "quote": "Career 360 a relu mon CV, m'a préparé à trois entretiens et m'a mis en relation avec des mentors de mon domaine. J'avais deux offres en six semaines.",
+        "outcome": "Deux offres en six semaines",
+        "role": "Ingénieur logiciel · Télétravail, UE"
+      },
+      "efua-o": {
+        "quote": "J'avais essuyé trois refus avant de venir. Nous avons reconstruit ma candidature de zéro, recadré mon histoire, et la session suivante a donné deux acceptations.",
+        "outcome": "Admise avec financement",
+        "role": "MA Relations internationales · Sciences Po"
+      },
+      "jojo-k": {
+        "quote": "Le formulaire d'entrée semblait exigeant avant l'appel — et il l'était. Quand nous nous sommes rencontrés, mon conseiller savait déjà exactement sur quoi me challenger.",
+        "outcome": "Deux offres MBA",
+        "role": "Candidat MBA · Toronto"
+      },
+      "adwoa-y": {
+        "quote": "Ce que j'ai le plus apprécié, c'est l'honnêteté. Ils m'ont dit quelles écoles étaient ambitieuses et lesquelles correspondaient. Cette clarté m'a fait gagner un an.",
+        "outcome": "Admission en licence, financée DAAD",
+        "role": "Licence Informatique · TU Munich"
+      }
+    },
+    "placementsSection": {
+      "kicker": "— Où ils ont atterri",
+      "title": "Les universités que nos clients appellent désormais <em>leur chez-eux</em>.",
+      "lede": "Douze ans de travail en admissions et bourses, dans huit pays et plus encore.",
+      "logoAlt": "Logo {school}",
+      "stats": {
+        "applicants": "Candidats accompagnés",
+        "funding": "Financement obtenu",
+        "countries": "Pays"
+      },
+      "countries": {
+        "uk": "Royaume-Uni",
+        "canada": "Canada",
+        "germany": "Allemagne",
+        "southAfrica": "Afrique du Sud",
+        "southKorea": "Corée du Sud",
+        "australia": "Australie",
+        "france": "France",
+        "usa": "États-Unis"
+      }
+    },
+    "resourcesSection": {
+      "kicker": "— Ressources gratuites",
+      "title": "Outils, guides,<br></br>et courtes <em>introductions</em>.",
+      "open": "Ouvrir",
+      "seeAll": "Voir toutes les ressources"
+    },
+    "blogSection": {
+      "kicker": "— Le blog",
+      "title": "Les dernières publications de notre <em>rédaction</em>.",
+      "lede": "Nous écrivons sur les questions que nos candidats posent le plus. Pas de remplissage SEO — uniquement ce qui change votre façon de candidater.",
+      "readPost": "Lire l'article"
+    },
+    "applyCta": {
+      "kicker": "— Quand vous êtes prêt",
+      "title": "Commencez par une <em>candidature</em>.<br></br>Nous nous chargeons du reste.",
+      "lede": "La plupart des candidats reçoivent une réponse sous 48 heures. Sans engagement et sans frais pour candidater.",
+      "cta": "Démarrer votre candidature"
+    }
+  },
+  "servicesPage": {
+    "hero": {
+      "kicker": "Nos services",
+      "titleLine1": "Un conseil qui transforme l'<serif>ambition</serif>",
+      "titleLine2": "en une étape claire à franchir.",
+      "lede": "Des consultations sur dossier en admissions, bourses et stratégie de carrière — conçues pour les étudiants et professionnels qui veulent un conseil senior, pas des généralités.",
+      "cta": "Démarrer votre candidature"
+    },
+    "offerings": {
+      "kicker": "— Notre offre",
+      "titleLine1": "Trois axes de conseil,",
+      "titleLine2": "<serif>une seule exigence</serif>.",
+      "lede": "Des consultations sur dossier, menées par des conseillers seniors, en admissions, bourses et stratégie de carrière — pensées pour les clients qui veulent de la clarté plutôt que des conseils génériques."
+    },
+    "items": {
+      "admissions": {
+        "badge": "Admissions",
+        "title": "Admissions universitaires",
+        "excerpt": "D'une longue liste de rêves à une courte liste d'options réelles, testées pour leur adéquation. Nous vous aidons à bâtir une candidature qui vous ressemble dans votre meilleure version — pas un modèle, pas un catalogue d'exploits. Nos conseillers accompagnent des candidats à chaque étape depuis plus d'une décennie, à travers les cycles d'admission du Royaume-Uni, des États-Unis, de l'UE, du Canada, de l'Australie et de l'Afrique du Sud. Nous vous disons quand une université est ambitieuse, quand elle est adaptée et quand elle est une erreur discrète — assez tôt pour que la réponse compte.",
+        "points": [
+          "Construction d'une liste tenant compte de l'adéquation, du financement et de la probabilité d'admission selon les pays",
+          "Coaching de personal statement et de SOP sur plusieurs versions, avec retours détaillés",
+          "Calendrier de candidature, recommandations et appui décisionnel jusqu'au jour de l'offre",
+          "Accompagnement post-offre : stratégie de report, négociation de bourse, préparation au visa"
+        ],
+        "cta": "Candidater pour le conseil en admissions"
+      },
+      "scholarship": {
+        "badge": "Financement",
+        "title": "Stratégie de bourses",
+        "excerpt": "Les bourses récompensent les candidats capables de relier leur histoire à la mission du bailleur — clairement, crédiblement, sans effet de manche. Nous vous accompagnons sur l'analyse d'adéquation, les essais et les entretiens pour les bourses où vous avez vraiment une chance, pas seulement celles au nom prestigieux. Chaque bailleur a une thèse sur le type de leader qu'il veut soutenir ; notre travail consiste à faire ressortir la vôtre sur la page et dans la salle.",
+        "points": [
+          "Analyse d'adéquation au bailleur avant d'écrire le premier essai — Chevening, Mastercard, Commonwealth, Fulbright, DAAD",
+          "Coaching d'essais qui protège votre voix tout en affûtant votre argument",
+          "Préparation aux entretiens avec sessions blanches structurées et retours enregistrés",
+          "Logistique de candidature : références, recommandations et stratégie de soumission"
+        ],
+        "cta": "Candidater pour la stratégie de bourses"
+      },
+      "career": {
+        "badge": "Carrière",
+        "title": "Transition de carrière",
+        "excerpt": "Que vous changiez de secteur, de pays ou de niveau de séniorité, la question est la même : comment raconter votre histoire pour que la prochaine embauche paraisse évidente ? Nous vous aidons à vous repositionner sans perdre le fil de qui vous êtes — ceux qui recrutent bien ne récompensent pas le repackaging, ils récompensent la clarté. Du CV à LinkedIn jusqu'à la négociation, nous nous concentrons sur les leviers qui composent dans la durée.",
+        "points": [
+          "Stratégie CV et LinkedIn calibrée pour votre prochain niveau, pas le précédent",
+          "Préparation aux entretiens techniques, comportementaux et cases",
+          "Cadre de négociation pour les offres, relocations, equity et contre-offres",
+          "Plan de positionnement à six mois pour que la prochaine étape prépare la suivante"
+        ],
+        "cta": "Candidater pour le conseil de carrière"
+      }
+    },
+    "process": {
+      "kicker": "— Notre processus",
+      "titleLine1": "Comment se déroule",
+      "titleLine2": "<serif>une mission</serif>.",
+      "lede": "Sur dossier, structuré et senior dès la première réponse. Pas de walk-ins, pas de modèles génériques.",
+      "steps": {
+        "apply": {
+          "title": "Candidater",
+          "meta": "6 min · privé",
+          "copy": "Un questionnaire structuré sur vos objectifs, votre parcours et la décision en cours — lu par un conseiller senior."
+        },
+        "review": {
+          "title": "Revue et qualification",
+          "meta": "Sous 48 heures",
+          "copy": "Sous 48 heures, nous confirmons si une consultation est adaptée et quel conseiller de l'équipe vous correspond."
+        },
+        "session": {
+          "title": "Session de conseil",
+          "meta": "60 min · 1-on-1",
+          "copy": "Un échange ciblé en tête-à-tête avec votre conseiller — nous faisons émerger les options manquées et repartons avec une étape claire."
+        },
+        "ongoing": {
+          "title": "Suivi continu",
+          "meta": "Jusqu'au résultat",
+          "copy": "Si vous continuez, nous parcourons tout le chemin avec vous — brouillons, échéances, entretiens — jusqu'au résultat."
+        }
+      }
+    },
+    "qualification": {
+      "kicker": "— Qualification",
+      "titleLine1": "Ce n'est pas",
+      "titleLine2": "<serif>pour tout le monde</serif>.",
+      "lede": "Nous refusons plus de candidatures que nous n'en acceptons. Le conseil senior demande du temps — nous préférons être francs sur l'adéquation plutôt que gâcher la vôtre.",
+      "fit": {
+        "badge": "Adéquat",
+        "title": "Vous en tirerez le meilleur si vous...",
+        "items": [
+          "Êtes à 6–24 mois d'une vraie décision — cycle d'admission, échéance de financement ou mouvement de carrière.",
+          "Avez fait vos devoirs et voulez un conseil senior sur la suite à donner.",
+          "Vous engagerez sur les brouillons, les échéances et les retours honnêtes — même quand c'est inconfortable.",
+          "Valorisez la clarté et la direction plus que la réassurance.",
+          "Êtes prêt à investir pour prendre la bonne décision dès la première fois."
+        ]
+      },
+      "miss": {
+        "badge": "Pas adéquat",
+        "title": "Vous serez mieux servi ailleurs si vous...",
+        "items": [
+          "Cherchez des conseils gratuits ou des réponses rapides de type chatbot.",
+          "Avez besoin que quelqu'un fasse le travail à votre place, sans questions.",
+          "Voulez n'entendre que ce qui vous arrange.",
+          "N'êtes pas prêt à vous engager dans un processus structuré.",
+          "Traitez ce conseil comme une solution de dernière minute à quelques jours d'une échéance."
+        ]
+      }
+    },
+    "faq": {
+      "kicker": "— FAQ",
+      "titleLine1": "Les questions qui méritent",
+      "titleLine2": "<serif>une réponse franche</serif>.",
+      "lede": "Ce que les gens veulent vraiment savoir avant de candidater — réponses directes.",
+      "items": [
+        {
+          "q": "Combien coûte une consultation et qu'est-ce que je reçois ?",
+          "a": "Le tarif est communiqué après la revue de 48 heures, pour que vous receviez un devis lié au périmètre réel de votre situation — pas une grille générique. Chaque mission inclut un conseiller senior, une session privée de 60 minutes et un résumé écrit des prochaines étapes convenues."
+        },
+        {
+          "q": "En quoi est-ce différent d'un échange gratuit ou d'un cabinet générique ?",
+          "a": "Deux choses. D'abord, chaque consultation est menée par un conseiller senior — pas un junior, pas un chatbot. Ensuite, nous ne vendons pas du volume. La porte d'entrée par candidature existe pour ne travailler qu'avec des personnes que nous pouvons réellement faire avancer."
+        },
+        {
+          "q": "Que se passe-t-il après la revue de 48 heures si je ne suis pas accepté ?",
+          "a": "Vous recevrez une note brève et honnête expliquant pourquoi nous ne sommes pas le bon choix — et, le cas échéant, une orientation vers une ressource ou un cabinet pair qui l'est. Pas de relance commerciale, pas d'astuce de liste d'attente. Environ 4 candidatures sur 10 ne passent pas cette étape."
+        },
+        {
+          "q": "Garantissez-vous une admission, une bourse ou une offre d'emploi ?",
+          "a": "Non, et vous devriez vous méfier de tout conseiller qui le promet. Ce que nous garantissons, c'est un jugement senior honnête, une stratégie claire et le même niveau de préparation que nous voudrions pour notre propre famille. Les décisions restent aux écoles, aux bailleurs et aux employeurs."
+        },
+        {
+          "q": "Comment sont choisis les conseillers, et puis-je choisir le mien ?",
+          "a": "Après votre intake, nous faisons correspondre selon le pays cible, le secteur et la décision en cours. Vous connaîtrez le nom et le parcours de votre conseiller avant la confirmation de la session — et vous pouvez décliner et demander un autre profil, sans justifier."
+        }
+      ]
+    },
+    "finalCta": {
+      "kicker": "— Quand vous êtes prêt",
+      "titleLine1": "Candidatez en trois minutes.",
+      "titleLine2": "<serif>Nous nous chargeons du reste.</serif>",
+      "lede": "Nous lisons chaque candidature, décidons sous 48 heures si nous sommes le bon partenaire et vous répondons dans tous les cas. Sans frais, sans engagement.",
+      "cta": "Démarrer votre candidature"
+    }
+  }
+}

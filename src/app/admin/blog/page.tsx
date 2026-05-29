@@ -1,22 +1,47 @@
 import Link from "next/link";
+import { apiFetch } from "@/lib/api";
 import { mockPosts, type Post } from "../_mock";
 
 export const metadata = { title: "Blog · Captor admin" };
 
+type PaginatedPosts = { data: Post[] };
+
+async function loadPosts(qs: URLSearchParams): Promise<{
+  rows: Post[];
+  live: boolean;
+}> {
+  try {
+    const res = await apiFetch<PaginatedPosts>(`/api/admin/posts?${qs.toString()}`);
+    return { rows: res.data, live: true };
+  } catch {
+    return { rows: mockPosts, live: false };
+  }
+}
+
 export default async function BlogListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; deleted?: string }>;
 }) {
   const sp = await searchParams;
-  const q = (sp.q ?? "").toLowerCase().trim();
+  const q = (sp.q ?? "").trim();
   const status = sp.status ?? "";
 
-  const rows = mockPosts.filter((p) => {
-    if (status && p.status !== status) return false;
-    if (q && !(p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q))) return false;
-    return true;
-  });
+  const qs = new URLSearchParams();
+  qs.set("per_page", "100");
+  if (q) qs.set("q", q);
+  if (status) qs.set("status", status);
+
+  const { rows: serverRows, live } = await loadPosts(qs);
+
+  // When mock-fallback, apply filters client-side to keep behaviour consistent.
+  const rows = live
+    ? serverRows
+    : serverRows.filter((p) => {
+        if (status && p.status !== status) return false;
+        if (q && !(p.title.toLowerCase().includes(q.toLowerCase()) || p.slug.toLowerCase().includes(q.toLowerCase()))) return false;
+        return true;
+      });
 
   return (
     <div className="admin-page">
@@ -30,6 +55,17 @@ export default async function BlogListPage({
           New post
         </Link>
       </header>
+
+      {!live && (
+        <p className="admin-gated" role="status">
+          Backend unavailable — showing seed/mock posts. Changes won&apos;t persist.
+        </p>
+      )}
+      {sp.deleted && (
+        <p className="admin-gated admin-gated--ok" role="status">
+          Post deleted.
+        </p>
+      )}
 
       <form className="admin-filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder="Search title or slug…" />

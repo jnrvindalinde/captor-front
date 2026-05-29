@@ -642,11 +642,13 @@ ul, ol { list-style: none; }
   letter-spacing: 0.01em;
   color: rgba(255, 255, 255, 0.86);
 }
-@media (min-width: 980px) { .nav__links { display: flex; } }
+@media (min-width: 1025px) { .nav__links { display: flex; } }
 .nav__links a {
   padding: 6px 0;
   position: relative;
   transition: color var(--dur-1);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .nav__links a::after {
   content: "";
@@ -666,6 +668,8 @@ ul, ol { list-style: none; }
   align-items: center;
   gap: var(--space-3);
 }
+/* Mobile + tablet show the burger only; Login + Lang live inside the drawer. */
+@media (max-width: 1024px) { .nav__right { display: none !important; } }
 
 .lang-btn {
   display: none;
@@ -676,9 +680,125 @@ ul, ol { list-style: none; }
   color: rgba(255, 255, 255, 0.75);
   font-size: var(--text-sm);
   padding: 8px 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 @media (min-width: 720px) { .lang-btn { display: inline-flex; } }
 .lang-btn svg { width: 18px; height: 18px; }
+
+/* =================================================================
+   BURGER + MOBILE NAV DRAWER  (Phase A — site build-out plan)
+   ================================================================= */
+.nav__burger {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+/* Hide burger from the same breakpoint where desktop links appear. */
+@media (min-width: 1025px) { .nav__burger { display: none; } }
+
+.nav__burger-bar {
+  display: block;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 2px;
+  transition: background-color var(--dur-1);
+}
+.nav--light .nav__burger-bar { background: var(--color-navy); }
+
+/* Drawer is portal-like — sits above all page content. */
+.mobile-nav__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 18, 41, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 80;
+}
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  display: flex;
+  flex-direction: column;
+  width: min(86vw, 360px);
+  background: #ffffff;
+  color: var(--color-navy);
+  box-shadow: -8px 0 32px rgba(7, 18, 41, 0.18);
+  padding: var(--space-5);
+}
+.mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block-end: var(--space-4);
+  border-bottom: 1px solid var(--color-line, rgba(7, 18, 41, 0.08));
+}
+.mobile-nav__title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted, rgba(7, 18, 41, 0.6));
+}
+.mobile-nav__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-navy);
+  cursor: pointer;
+  border-radius: 8px;
+}
+.mobile-nav__close:hover { background: rgba(7, 18, 41, 0.06); }
+
+.mobile-nav__links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block: var(--space-4);
+  flex: 1 1 auto;
+}
+.mobile-nav__link {
+  display: block;
+  padding: 14px 8px;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-navy);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color var(--dur-1), color var(--dur-1);
+}
+.mobile-nav__link:hover { background: rgba(7, 18, 41, 0.05); }
+.mobile-nav__link[aria-current="page"] {
+  color: var(--color-energy, #0a2659);
+  background: rgba(10, 38, 89, 0.06);
+}
+
+.mobile-nav__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-line, rgba(7, 18, 41, 0.08));
+}
+.lang-btn--drawer {
+  display: inline-flex;
+  color: var(--color-navy);
+}
 
 /* =================================================================
    BRAND
@@ -1629,7 +1749,7 @@ ul, ol { list-style: none; }
   letter-spacing: -0.02em;
   line-height: 1.1;
   font-weight: 700;
-  color: #4a5566;
+  color: var(--color-navy);
   margin: 0 0 var(--space-5);
   max-width: 22ch;
 }
@@ -1880,6 +2000,60 @@ ul, ol { list-style: none; }
   max-width: 36ch;
 }
 
+/* Up to the 4-across desktop breakpoint, lay each step out as:
+     [node]  META
+             Title
+     ─────────────────────
+     copy paragraph (full width)
+   so the number sits flexed with the title block instead of stranded
+   above it. Above 1000px the original "number on top, body below"
+    4-across layout takes over.
+
+   NB: this block MUST come after the base `.svc-step__*` rules above so
+   `display: contents` on the body actually wins the cascade (the base
+   rule sets it to flex). */
+@media (max-width: 999px) {
+  .svc-step {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: var(--space-4);
+    row-gap: 4px;
+    align-items: start;
+  }
+  .svc-step__rail {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    min-height: 0;
+    margin-bottom: 0;
+  }
+  .svc-step__body { display: contents; }
+  .svc-step__meta {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+    align-self: end;
+    text-align: left;
+  }
+  .svc-step__title {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    align-self: start;
+    text-align: left;
+    margin: 0;
+  }
+  .svc-step__copy {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    max-width: none;
+    margin-top: var(--space-3);
+    text-align: left;
+  }
+  .svc-step__line { display: none; }
+}
+
 /* =================================================================
    SVC QUALIFICATION - two-column fit / not-a-fit comparison
    ================================================================= */
@@ -2010,7 +2184,7 @@ ul, ol { list-style: none; }
   border-color: rgba(15, 32, 71, 0.25);
 }
 .svc-faq__item[open] {
-  border-color: var(--color-navy);
+  border-color: transparent;
   box-shadow: 0 10px 30px -20px rgba(15, 32, 71, 0.35);
 }
 
@@ -2582,6 +2756,40 @@ ul, ol { list-style: none; }
   margin-bottom: var(--space-6);
 }
 
+/* On mobile, collapse to a single horizontal scroll strip with hidden
+   scrollbar. The chips keep their natural size so the user just swipes.
+   A soft fade on each edge hints that more content is off-screen. */
+@media (max-width: 720px) {
+  .placements-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Bleed edge-to-edge so the strip feels like a horizontal carousel
+       without awkward right-edge clipping. */
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    /* Fade in/out at the edges so the user gets a "there's more" cue. */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
+  }
+  .placements-filters::-webkit-scrollbar { display: none; }
+  .placements-filter { flex: 0 0 auto; white-space: nowrap; }
+}
+
 .placements-filter {
   display: inline-flex;
   align-items: center;
@@ -2692,6 +2900,37 @@ ul, ol { list-style: none; }
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-bottom: var(--space-6);
+}
+
+/* Mobile: single horizontal scroll strip with hidden scrollbar and a
+   soft edge fade to hint at more chips off-screen. Mirrors the
+   `.placements-filters` mobile treatment. */
+@media (max-width: 720px) {
+  .resources-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
+  }
+  .resources-filters::-webkit-scrollbar { display: none; }
+  .resources-filter { flex: 0 0 auto; white-space: nowrap; }
 }
 
 /* Toolbar wraps the filter chips + search input. Filters left, search right.
@@ -3644,15 +3883,26 @@ ul, ol { list-style: none; }
   .blog-filters {
     width: 100%;
   }
+  /* On mobile we drop the card/list toggle entirely — the card view is the
+     default and the list view doesn't add value on a narrow screen. Hide
+     the whole controls row so nothing sits between the hero and the
+     post grid. */
+  .blog-controls,
   .blog-view-toggle {
-    width: 100%;
-    justify-content: center;
+    display: none;
   }
   
   .blog-list-item {
     flex-direction: column;
     gap: var(--space-4);
     padding: var(--space-4);
+  }
+  /* The inner Link is also a flex row by default — flip it to a column on
+     mobile so the 100%-wide image stacks above the text content instead
+     of pushing the content off-screen to the right. */
+  .blog-list-item__link {
+    flex-direction: column;
+    gap: var(--space-4);
   }
   .blog-list-item__image {
     width: 100%;
@@ -4718,7 +4968,27 @@ ul, ol { list-style: none; }
     overflow-x: auto;
     gap: var(--space-2);
     padding-bottom: var(--space-2);
+    /* Hide the scrollbar — the steps already give a clear visual cue
+       (active step + numbering), and a fade on each edge hints that
+       more is off-screen. Matches the chip-strip treatment on
+       /placements and /resources. */
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 24px,
+      #000 calc(100% - 24px),
+      transparent 100%
+    );
   }
+  .apply-rail::-webkit-scrollbar { display: none; }
 }
 .apply-rail__item {
   display: block;
@@ -4796,15 +5066,14 @@ ul, ol { list-style: none; }
 .apply-rail__item.is-done .apply-rail__title { color: var(--color-ink-soft); }
 .apply-rail__item.is-todo .apply-rail__title { color: var(--color-ink-muted); }
 
-/* --- Card --- */
-.apply-card {
+/* --- Card (apply form wrapper) ---
+   NB: previously named .apply-card but that collided with the navy CTA
+   card on /, /services. Renamed to .apply-formcard. */
+.apply-formcard {
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-xl, 16px);
   padding: var(--space-6);
-  /* The legacy .apply-card rule near the top of this file sets text-align: center
-     for the navy CTA card. Reset it here so the form card aligns labels/inputs
-     to the start, while the per-step head explicitly re-centers itself. */
   text-align: left;
   color: var(--color-ink);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04),
@@ -5037,6 +5306,35 @@ ul, ol { list-style: none; }
   color: var(--color-ink);
   background: transparent;
 }
+
+/* Touch-friendly "add this entry" button shown beside the chip input.
+   Mobile keyboards don't surface a clear "submit chip" affordance, so the
+   check button gives a one-tap path to confirm the current value. Disabled
+   (and visually dimmed) while the input is empty. */
+.apply-chip-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 999px;
+  border: 1px solid var(--color-navy);
+  background: var(--color-navy);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--dur-1) ease, opacity var(--dur-1) ease,
+    transform var(--dur-1) ease;
+}
+.apply-chip-add:hover:not(:disabled) { background: var(--color-navy-deep, var(--color-navy)); }
+.apply-chip-add:active:not(:disabled) { transform: scale(0.96); }
+.apply-chip-add:disabled {
+  background: #fff;
+  color: var(--color-ink-muted);
+  border-color: var(--color-line);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .apply-helper {
   display: block;
   margin-top: 4px;
@@ -5164,6 +5462,26 @@ ul, ol { list-style: none; }
   padding: 4px 6px;
 }
 
+/* On narrow screens, stack the filename on its own line so it isn't
+   squeezed into a 1fr column by the size + Remove cells. The size and
+   Remove button drop onto a second row, justified between left/right. */
+@media (max-width: 600px) {
+  .apply-files__item {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name name"
+      "size remove";
+    row-gap: 6px;
+  }
+  .apply-files__name {
+    grid-area: name;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .apply-files__size { grid-area: size; justify-self: start; }
+  .apply-files__remove { grid-area: remove; justify-self: end; }
+}
+
 /* Newsletter check */
 .apply-check {
   display: flex;
@@ -5274,7 +5592,7 @@ ul, ol { list-style: none; }
 }
 
 @media (max-width: 600px) {
-  .apply-card { padding: var(--space-5); }
+  .apply-formcard { padding: var(--space-5); }
   .apply-actions { flex-direction: row; }
   .apply-success__actions { flex-direction: column; align-items: stretch; }
 }
@@ -6094,8 +6412,8 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   gap: 0.35rem;
   line-height: 1;
 }
-.admin-btn--solid { background: #111; color: #fff; }
-.admin-btn--solid:hover { background: #000; }
+.admin-btn--solid { background: var(--color-navy, #10367d); color: #fff; }
+.admin-btn--solid:hover { background: #0c2a64; }
 .admin-btn--ghost {
   background: transparent;
   color: #4b4b46;
@@ -6191,6 +6509,51 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
 .admin-crumbs a { color: #4b4b46; text-decoration: none; }
 .admin-crumbs a:hover { text-decoration: underline; }
 
+/* Brand-blue focus ring across all admin form controls. */
+.admin-shell input:focus,
+.admin-shell textarea:focus,
+.admin-shell select:focus {
+  outline: none;
+}
+.admin-shell input:focus-visible,
+.admin-shell textarea:focus-visible,
+.admin-shell select:focus-visible {
+  outline: none;
+  border-color: var(--color-navy, #10367d);
+  box-shadow: 0 0 0 3px rgba(16, 54, 125, 0.18);
+}
+.admin-shell button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 54, 125, 0.25);
+}
+
+.admin-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+  padding: 0.45rem 0.8rem 0.45rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-navy, #10367d);
+  background: #eef2fa;
+  border: 1px solid #d6dff0;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.admin-back:hover {
+  background: #e2e9f6;
+  border-color: #c2cee6;
+}
+.admin-back:active { transform: translateY(1px); }
+.admin-back__icon {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  flex: none;
+}
+
 .admin-detail__head {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -6230,6 +6593,19 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
 .admin-dl--grid { grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem; }
 @media (max-width: 700px) { .admin-dl--grid { grid-template-columns: 1fr; } }
 
+/* Tighter rhythm for the lead-detail right sidebar. */
+.admin-detail__side .admin-panel { padding: 1rem 1.1rem; }
+.admin-detail__side .admin-panel__head { margin-bottom: 0.6rem; }
+.admin-detail__side .admin-panel__head .h3 { font-size: 1rem; }
+.admin-detail__side .admin-dl { gap: 0.4rem; }
+.admin-detail__side .admin-dl div {
+  grid-template-columns: 90px 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+.admin-detail__side .admin-dl dt { font-size: 0.78rem; }
+.admin-detail__side .admin-dl dd { font-size: 0.85rem; line-height: 1.35; }
+
 .admin-files { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
 .admin-files li {
   display: grid;
@@ -6268,7 +6644,6 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   padding: 0.85rem 1rem;
   background: #fafaf7;
   border-radius: 10px;
-  border-left: 3px solid rgba(0, 0, 0, 0.15);
 }
 .admin-notes__head,
 .admin-meetings__head {
@@ -6281,6 +6656,79 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
 }
 .admin-notes li p,
 .admin-meetings li p { margin: 0.25rem 0 0; line-height: 1.5; }
+
+/* System notes — distinguished from manual ones with a subtle navy-tinted
+   background and italic body. They act as the audit trail for lifecycle events. */
+.admin-notes__item--system {
+  background: #f5f8ff !important;
+}
+.admin-notes__item--system p {
+  font-style: italic;
+  color: #4b5b7e;
+  font-size: 0.88rem;
+}
+.admin-notes__item--system .admin-notes__head strong {
+  color: var(--color-navy, #10367d);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-notes__head { align-items: center; }
+.admin-notes__edit {
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: var(--color-navy, #10367d);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.admin-notes__edit:hover { color: #0c2a64; }
+.admin-notes__edit-form { display: grid; gap: 0.5rem; margin-top: 0.4rem; }
+.admin-notes__edit-form textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #d6dff0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-navy, #10367d);
+  font: inherit;
+  resize: vertical;
+}
+.admin-notes__edit-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Accordion (used for the Notes panel) — the panel head becomes the trigger. */
+.admin-accordion__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.admin-accordion__head:hover .admin-accordion__chevron { color: var(--color-navy, #10367d); }
+.admin-accordion__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.admin-accordion__chevron {
+  width: 18px;
+  height: 18px;
+  color: #6f7d9b;
+  transition: transform 0.2s ease;
+}
+.admin-accordion__chevron--open { transform: rotate(180deg); }
+.admin-accordion__body { will-change: height; }
 .admin-meetings__meta {
   display: flex;
   gap: 1rem;
@@ -6300,6 +6748,76 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   border-radius: 8px;
   font: inherit;
   background: #fff;
+}
+
+.admin-stage-form__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+.admin-stage-form__discard {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: #6f6c63;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.admin-stage-form__discard:hover { color: var(--color-navy, #10367d); }
+
+/* Gating notice — shown when a section is blocked by lifecycle rules. */
+.admin-gated {
+  background: #f5f8ff;
+  border: 1px dashed #c7d3ec;
+  border-radius: 10px;
+  padding: 0.95rem 1.1rem;
+  color: var(--color-navy, #10367d);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin-bottom: 1rem;
+}
+.admin-gated strong { display: block; margin-bottom: 0.25rem; }
+.admin-gated em { font-style: normal; font-weight: 700; }
+.admin-gated p { margin: 0; color: #4b5b7e; font-size: 0.85rem; }
+
+/* Toast stack — bottom-right, lightweight feedback for mock actions. */
+.admin-toast-stack {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: grid;
+  gap: 0.5rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+.admin-toast {
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #d6dff0;
+  box-shadow: 0 8px 22px rgba(16, 54, 125, 0.14);
+  color: var(--color-navy, #10367d);
+  font-size: 0.88rem;
+  max-width: 22rem;
+  pointer-events: auto;
+}
+.admin-toast--success {
+  border-color: #8fd6b1;
+  background: #f1fbf6;
+  color: #115d35;
+}
+.admin-toast--warn {
+  border-color: #f1d680;
+  background: #fff8df;
+  color: #7a5300;
+}
+.admin-toast--info {
+  border-color: #d6dff0;
+  background: #f5f8ff;
 }
 
 /* ---------------- Admin CMS · forms, filters, decision banner ---------------- */
@@ -6324,11 +6842,11 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
 }
 .admin-filters input,
 .admin-filters select {
-  background: var(--surface-1, #15151a);
-  border: 1px solid var(--border, #2a2a31);
-  color: inherit;
+  background: #fff;
+  border: 1px solid #d6dff0;
+  color: var(--color-navy, #10367d);
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   font: inherit;
   min-width: 160px;
 }
@@ -6338,9 +6856,9 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   display: grid;
   gap: 16px;
   max-width: 920px;
-  background: var(--surface-1, #15151a);
-  border: 1px solid var(--border, #2a2a31);
-  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e3e8f1;
+  border-radius: 12px;
   padding: 20px;
 }
 .admin-form__row {
@@ -6357,16 +6875,16 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.6);
+  color: #6f6c63;
 }
 .admin-form__field input,
 .admin-form__field select,
 .admin-form__field textarea {
-  background: var(--surface-0, #0e0e12);
-  border: 1px solid var(--border, #2a2a31);
-  color: inherit;
+  background: #fff;
+  border: 1px solid #d6dff0;
+  color: var(--color-navy, #10367d);
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font: inherit;
   width: 100%;
 }
@@ -6375,18 +6893,18 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  border-top: 1px solid var(--border, #2a2a31);
+  border-top: 1px solid #e3e8f1;
   padding-top: 16px;
 }
 
 .admin-pill--ghost {
   background: transparent;
-  border: 1px solid var(--border, #2a2a31);
-  color: rgba(255,255,255,0.75);
+  border: 1px solid #d6dff0;
+  color: #6f6c63;
 }
-.admin-pill--decision-pending  { background: rgba(255, 196, 0, 0.15);  color: #ffd968; border: 1px solid rgba(255,196,0,0.3); }
-.admin-pill--decision-approved { background: rgba(40, 200, 120, 0.15); color: #6ce0a3; border: 1px solid rgba(40,200,120,0.3); }
-.admin-pill--decision-declined { background: rgba(220, 80, 80, 0.15);  color: #ff8a8a; border: 1px solid rgba(220,80,80,0.3); }
+.admin-pill--decision-pending  { background: #fff4d1; color: #7a5300; border: 1px solid #f1d680; }
+.admin-pill--decision-approved { background: #d8f5e6; color: #115d35; border: 1px solid #8fd6b1; }
+.admin-pill--decision-declined { background: #fbe0e0; color: #8a1f1f; border: 1px solid #f0a4a4; }
 
 .admin-decision-banner {
   padding: 12px 14px;
@@ -6410,20 +6928,442 @@ button.admin-cal__day:hover { filter: brightness(0.97); }
   margin-top: 4px;
 }
 .admin-decision-form textarea {
-  background: var(--surface-0, #0e0e12);
-  border: 1px solid var(--border, #2a2a31);
-  color: inherit;
+  background: #fff;
+  border: 1px solid #d6dff0;
+  color: var(--color-navy, #10367d);
   padding: 10px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   font: inherit;
   resize: vertical;
 }
 .admin-decision-form__actions { display: flex; gap: 10px; }
-.admin-btn--danger { color: #ff8a8a; border-color: rgba(220, 80, 80, 0.4); }
-.admin-btn--danger:hover { background: rgba(220, 80, 80, 0.08); }
+.admin-btn--danger { color: #8a1f1f; border-color: #f0a4a4; }
+.admin-btn--danger:hover { background: #fbe0e0; }
 
 .admin-muted--sm { font-size: 12px; }
 .admin-actions { display: flex; gap: 8px; align-items: center; }
 
 .admin-table__primary { color: inherit; font-weight: 600; }
 .admin-table__primary:hover { text-decoration: underline; }
+
+/* =================================================================
+   PHASE A — MOBILE / RESPONSIVE SAFETY NET
+   -----------------------------------------------------------------
+   Conservative rules applied site-wide to prevent the most common
+   small-screen breakages (overflow, oversized media, cramped padding)
+   without overriding any deliberate page designs. Keep this block
+   LAST in the stylesheet so it acts as a final defense layer.
+   ================================================================= */
+
+/* 1. Prevent any descendant from forcing horizontal page scroll. */
+html, body { overflow-x: clip; }
+
+/* 2. Media never overflows its container. SVG height auto avoids
+      the classic "1px tall" bug when only width is set. */
+img, video, picture, svg, iframe, canvas, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+/* …but icons inside buttons / inline runs keep their declared size. */
+button img, button svg,
+.btn img, .btn svg,
+.icon, .icon svg {
+  width: auto;
+}
+
+/* 3. Long unbroken strings (URLs, emails, code, long names) wrap
+      instead of busting the layout on narrow screens. */
+p, li, dd, dt, h1, h2, h3, h4, h5, h6, a, span, strong, em, blockquote {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+/* …but UI labels in nav-style elements must NEVER mid-word-break. The
+   rule above happily snaps "Services" to "Service\ns" when a flex column
+   gets too narrow, which looks broken. Restore normal word-wrapping for
+   nav links, buttons, and any element that explicitly opts out with the
+   `.no-break` utility class. */
+.nav__links a, .nav__links span,
+.mobile-nav__link,
+.nav__cta, .nav__cta span,
+button, button span,
+.btn, .btn span,
+.lang-btn, .lang-btn *,
+.no-break {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+/* Tables get horizontal scroll when wrapped in `.table-wrap`. */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* 4. Grid / flex children that contain long content should not push
+      their parent wider than the available space. */
+.section > .container,
+.section > .container2,
+main {
+  min-width: 0;
+}
+
+/* 5. Tighter container padding on tiny screens — design uses 20px
+      gutter at all widths which is generous; trim to 16px below 480px. */
+@media (max-width: 479px) {
+  :root { --gutter: 16px; }
+  .section { padding-block: var(--space-5); }
+}
+
+/* 6. Common "two-column at desktop, stack on mobile" grids that exist
+      throughout the site. If a page-specific rule already collapses
+      these, the duplicate is harmless. */
+@media (max-width: 720px) {
+  .grid-2,
+  .two-col,
+  .split,
+  .row-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 7. Buttons and form inputs always reach a 44px tap target on touch
+      devices — but only enforce min-height where a button isn't already
+      sized smaller intentionally (chip / pill variants opt out via
+      `.btn--sm`). */
+@media (hover: none) and (pointer: coarse) {
+  button:not(.btn--sm):not(.lang-btn):not(.nav__burger):not(.mobile-nav__close),
+  a.btn:not(.btn--sm),
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+  }
+}
+
+/* 8. The apply-form rail collapses to a horizontal strip on phones
+      so it doesn't eat half the viewport. Page CSS already does this
+      at 900px; this rule just enforces it stays tidy under 480px. */
+@media (max-width: 480px) {
+  .apply-rail {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: none;
+  }
+  .apply-rail::-webkit-scrollbar { display: none; }
+  .apply-rail__item { flex: 0 0 auto; min-width: 140px; }
+}
+
+
+/* ===== Content editor (admin) ===== */
+.content-editor { display: flex; flex-direction: column; gap: 1.25rem; }
+.content-editor__toolbar { display: flex; gap: 0.5rem; }
+.content-editor__toolbar .admin-input { flex: 1; max-width: 32rem; padding: 0.5rem 0.75rem; border: 1px solid #d0d7e2; border-radius: 6px; }
+.content-editor__group { background: #fff; border: 1px solid #e4e9f0; border-radius: 8px; overflow: hidden; }
+.content-editor__group-head { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.75rem 1rem; background: #f6f8fb; border: 0; cursor: pointer; font-weight: 600; text-align: left; }
+.content-editor__group-head:hover { background: #eef2f8; }
+.content-editor__rows { list-style: none; margin: 0; padding: 0; }
+.content-row { display: grid; grid-template-columns: 18rem 1fr auto; gap: 0.75rem; padding: 0.85rem 1rem; border-top: 1px solid #eef2f8; align-items: start; }
+.content-row__key { display: flex; flex-direction: column; gap: 0.35rem; }
+.content-row__key code { font-size: 0.8rem; color: #1f2a44; word-break: break-all; }
+.content-row__values { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.content-row__values label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; color: #5a6478; }
+.content-row__values .admin-input { padding: 0.45rem 0.6rem; border: 1px solid #d0d7e2; border-radius: 6px; font-size: 0.875rem; resize: vertical; font-family: inherit; }
+.content-row__lang { text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.content-row__actions { display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-end; }
+.admin-btn--xs { padding: 0.2rem 0.5rem; font-size: 0.7rem; }
+@media (max-width: 800px) { .content-row { grid-template-columns: 1fr; } .content-row__values { grid-template-columns: 1fr; } }
+
+
+
+/* ============================================================
+   CMS — Media library (Phase 1)
+   ============================================================ */
+
+.cms-media__toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+.cms-media__search { display: flex; gap: 0.5rem; flex: 1 1 320px; }
+.cms-media__search .admin-input { flex: 1; }
+
+.cms-media__grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.cms-media__tile {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cms-media__tile:hover {
+  border-color: var(--color-navy, #10367d);
+  box-shadow: 0 4px 12px rgba(16, 54, 125, 0.1);
+}
+.cms-media__tile img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  background: #f3f4f6;
+}
+.cms-media__name {
+  display: block;
+  padding: 0.6rem 0.75rem 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cms-media__meta {
+  display: block;
+  padding: 0 0.75rem 0.75rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.cms-media__modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.5rem;
+}
+.cms-media__modal-body {
+  background: #fff;
+  border-radius: 14px;
+  width: min(900px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+.cms-media__modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.cms-media__modal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 720px) {
+  .cms-media__modal-grid { grid-template-columns: 1fr; }
+}
+.cms-media__preview {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: block;
+}
+.cms-media__props {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+}
+.cms-media__props dt { color: #6b7280; }
+.cms-media__props dd { margin: 0; word-break: break-all; }
+.cms-media__url a { color: var(--color-navy, #10367d); text-decoration: underline; }
+.cms-media__fields .admin-field { display: block; margin-bottom: 0.6rem; }
+.cms-media__fields .admin-field span {
+  display: block;
+  font-size: 0.78rem;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+.cms-media__fields .admin-input { width: 100%; }
+.cms-media__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.admin-btn--danger {
+  background: #b91c1c;
+  color: #fff;
+  margin-left: auto;
+}
+.admin-btn--danger:hover { background: #991b1b; }
+.admin-btn.is-disabled { opacity: 0.6; cursor: not-allowed; }
+
+
+/* ============================================================
+   CMS — Collections (Phase 2)
+   ============================================================ */
+
+.cms-collections__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.cms-collections__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.cms-collections__row:hover { border-color: var(--color-navy, #10367d); }
+.cms-collections__row strong { display: block; }
+.cms-collections__row .admin-muted { font-size: 0.8rem; }
+.cms-collections__row p { margin: 0.25rem 0 0; font-size: 0.85rem; }
+.admin-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.admin-pill--warn { background: #fef3c7; color: #92400e; }
+
+.cms-coll { display: grid; gap: 1.5rem; }
+.cms-coll__add {
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border: 1px dashed rgba(0,0,0,0.15);
+  border-radius: 12px;
+}
+.cms-coll__add h2 { margin: 0 0 0.5rem; }
+.cms-coll__form { display: grid; gap: 0.6rem; }
+
+.cms-coll__items { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
+.cms-coll__item {
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 12px;
+}
+.cms-coll__item.is-draft { background: #fffbeb; border-color: #fde68a; }
+.cms-coll__item-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.cms-coll__item-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+.admin-link-btn--danger { color: #b91c1c; }
+.admin-field--row { display: flex; align-items: center; gap: 0.5rem; }
+
+
+/* ============================================================
+   CMS — Pages (Phase 3): admin editor + public renderer
+   ============================================================ */
+
+.cms-pages { display: grid; gap: 1.5rem; }
+.cms-pages__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.cms-pages__create { padding: 1rem 1.25rem; background: #f8fafc; border: 1px dashed rgba(0,0,0,0.15); border-radius: 12px; }
+.cms-pages__create h2 { margin: 0 0 0.75rem; }
+.cms-pages__create-form { display: grid; gap: 0.75rem; }
+.cms-pages__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.cms-pages__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.85rem 1rem; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; text-decoration: none; color: inherit; }
+.cms-pages__row:hover { border-color: var(--color-navy, #10367d); }
+
+.cms-page-editor { display: grid; gap: 1.5rem; }
+.cms-page-editor__actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+/* Public CMS page render styles (minimal — pages inherit site fonts) */
+.cms-page .cms-hero { padding: 4rem 0 3rem; background: var(--color-navy, #10367d); color: #fff; }
+.cms-page .cms-hero--split .cms-hero__inner { display: grid; gap: 2rem; grid-template-columns: 1fr; }
+@media (min-width: 900px) {
+  .cms-page .cms-hero--split .cms-hero__inner { grid-template-columns: 1.1fr 0.9fr; align-items: center; }
+}
+.cms-page .cms-hero h1 { font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.1; margin: 0.5rem 0; }
+.cms-page .cms-hero__lede { font-size: 1.05rem; opacity: 0.92; max-width: 60ch; }
+.cms-page .cms-hero__cta { margin-top: 1.25rem; }
+.cms-page .cms-hero__media img { width: 100%; height: auto; border-radius: 14px; }
+
+.cms-page .cms-richtext { padding: 3rem 0; }
+.cms-page .cms-richtext p { font-size: 1.05rem; line-height: 1.7; margin: 0 0 1rem; max-width: 70ch; }
+
+.cms-page .cms-cta { padding: 2.5rem 0; background: #f5f5f5; }
+.cms-page .cms-cta__inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+.cms-page .cms-cta__title { margin: 0; font-size: 1.5rem; }
+.cms-page .cms-cta__sub { margin: 0.25rem 0 0; color: #555; }
+
+.cms-page .cms-steps { padding: 3rem 0; }
+.cms-page .cms-steps__header { margin: 0 0 1.5rem; }
+.cms-page .cms-steps__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
+.cms-page .cms-step { display: grid; grid-template-columns: 48px 1fr; gap: 1rem; }
+.cms-page .cms-step__n { font-weight: 700; color: var(--color-navy, #10367d); font-size: 1.5rem; }
+.cms-page .cms-step h3 { margin: 0 0 0.25rem; }
+.cms-page .cms-step p { margin: 0; color: #444; }
+
+.cms-page .cms-reasons { padding: 3rem 0; background: #fafafa; }
+.cms-page .cms-reasons__header { margin: 0 0 1.5rem; }
+.cms-page .cms-reasons__grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cms-page .cms-reason { padding: 1.25rem; background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; }
+.cms-page .cms-reason__icon { font-size: 1.5rem; }
+.cms-page .cms-reason h3 { margin: 0.25rem 0; font-size: 1.05rem; }
+.cms-page .cms-reason p { margin: 0; color: #555; font-size: 0.95rem; }
+
+.cms-page .cms-unknown { padding: 2rem 0; background: #fff3cd; }
+.cms-page .cms-unknown__msg { margin: 0; color: #92400e; }
+
+/* ========== CMS — extra section types (Phase 4 expansion) ========== */
+.cms-services__header,.cms-stories__header,.cms-countries__header,.cms-faq__header,.cms-gallery__header{font-size:1.75rem;font-weight:700;margin-bottom:.5rem;}
+.cms-services__lede{color:#64748b;margin-bottom:1.5rem;max-width:60ch;}
+.cms-services__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;}
+.cms-service-card{display:flex;flex-direction:column;gap:.5rem;padding:1rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;}
+.cms-service-card__img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;}
+.cms-service-card h3{font-size:1.1rem;font-weight:600;}
+.cms-service-card p{color:#475569;font-size:.95rem;}
+.cms-stories__row{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;}
+.cms-story-card{padding:1.25rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;display:flex;flex-direction:column;gap:.75rem;}
+.cms-story-card__img{width:64px;height:64px;border-radius:999px;object-fit:cover;}
+.cms-story-card blockquote{color:#334155;font-style:italic;line-height:1.55;}
+.cms-story-card__meta{font-size:.85rem;color:#64748b;}
+.cms-countries__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;}
+.cms-country-card{padding:1.25rem;border:1px solid #e5e7eb;border-radius:14px;background:#fff;}
+.cms-country-card header{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;}
+.cms-country-card__flag{font-size:1.5rem;}
+.cms-country-card h3{font-size:1.1rem;font-weight:600;}
+.cms-country-card p{color:#475569;font-size:.95rem;margin-bottom:.75rem;}
+.cms-country-card__programs{list-style:none;padding:0;display:flex;flex-direction:column;gap:.25rem;font-size:.9rem;}
+.cms-faq__list{display:flex;flex-direction:column;gap:.5rem;}
+.cms-faq__item{border:1px solid #e5e7eb;border-radius:10px;padding:.75rem 1rem;background:#fff;}
+.cms-faq__item summary{cursor:pointer;font-weight:600;}
+.cms-faq__item p{margin-top:.5rem;color:#475569;line-height:1.55;}
+.cms-gallery__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;}
+.cms-gallery__item{margin:0;}
+.cms-gallery__item img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;}
+.cms-gallery__item figcaption{font-size:.8rem;color:#64748b;margin-top:.25rem;}
+
+
+/* ========== CMS \u2014 preview banner + audit log (Phase 8) ========== */
+.cms-preview-banner{background:#fef3c7;border-bottom:1px solid #f59e0b;color:#78350f;padding:.5rem 1rem;font-size:.85rem;text-align:center;}
+.cms-preview-banner code{font-family:ui-monospace,monospace;}
+.cms-preview-link{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.75rem 1rem;margin:.75rem 0;}
+.cms-preview-link__help{font-size:.8rem;color:#475569;margin-top:.25rem;}
+.cms-audits{margin-top:2rem;border-top:1px solid #e5e7eb;padding-top:1rem;}
+.cms-audits h3{font-size:1.05rem;font-weight:600;margin-bottom:.5rem;}
+.cms-audits__list{list-style:none;padding:0;display:flex;flex-direction:column;gap:.25rem;font-size:.85rem;}
+.cms-audits__item{display:grid;grid-template-columns:8rem 1fr auto;gap:.75rem;padding:.4rem .6rem;border-radius:6px;background:#f8fafc;}
+.cms-audits__action{font-family:ui-monospace,monospace;color:#0f172a;}
+.cms-audits__user{color:#475569;}
+.cms-audits__time{color:#94a3b8;font-size:.75rem;}
+

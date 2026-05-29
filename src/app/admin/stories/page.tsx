@@ -1,24 +1,48 @@
 import Link from "next/link";
-import { mockStories } from "../_mock";
+import { apiFetch } from "@/lib/api";
+import { mockStories, type Story } from "../_mock";
 
 export const metadata = { title: "Stories · Captor admin" };
+
+type PaginatedStories = { data: Story[] };
+
+async function loadStories(qs: URLSearchParams): Promise<{
+  rows: Story[];
+  live: boolean;
+}> {
+  try {
+    const r = await apiFetch<PaginatedStories>(`/api/admin/stories?${qs.toString()}`);
+    return { rows: r.data, live: true };
+  } catch {
+    return { rows: mockStories, live: false };
+  }
+}
 
 export default async function StoriesListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; outcome?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; outcome?: string; deleted?: string }>;
 }) {
   const sp = await searchParams;
-  const q = (sp.q ?? "").toLowerCase().trim();
+  const q = (sp.q ?? "").trim();
   const status = sp.status ?? "";
   const outcome = sp.outcome ?? "";
 
-  const rows = mockStories.filter((s) => {
-    if (status && s.status !== status) return false;
-    if (outcome && s.outcome !== outcome) return false;
-    if (q && !(s.title.toLowerCase().includes(q) || s.person_name.toLowerCase().includes(q))) return false;
-    return true;
-  });
+  const qs = new URLSearchParams();
+  qs.set("per_page", "100");
+  if (q) qs.set("q", q);
+  if (status) qs.set("status", status);
+  if (outcome) qs.set("outcome", outcome);
+
+  const { rows: serverRows, live } = await loadStories(qs);
+  const rows = live
+    ? serverRows
+    : serverRows.filter((s) => {
+        if (status && s.status !== status) return false;
+        if (outcome && s.outcome !== outcome) return false;
+        if (q && !(s.title.toLowerCase().includes(q.toLowerCase()) || s.person_name.toLowerCase().includes(q.toLowerCase()))) return false;
+        return true;
+      });
 
   return (
     <div className="admin-page">
@@ -30,6 +54,15 @@ export default async function StoriesListPage({
         </div>
         <Link href="/admin/stories/new" className="admin-btn admin-btn--solid">New story</Link>
       </header>
+
+      {!live && (
+        <p className="admin-gated" role="status">
+          Backend unavailable — showing seed/mock stories. Changes won&apos;t persist.
+        </p>
+      )}
+      {sp.deleted && (
+        <p className="admin-gated admin-gated--ok" role="status">Story deleted.</p>
+      )}
 
       <form className="admin-filters" method="get">
         <input type="search" name="q" defaultValue={sp.q ?? ""} placeholder="Search title or person…" />

@@ -5,6 +5,7 @@ import { motion, type Variants } from "framer-motion";
 import { Section, Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
 import { Footer } from "@/components/layout/Footer";
+import { CmsInjectedSections } from "@/components/sections/CmsInjectedSections";
 
 type PlacementCategory = "university" | "scholarship" | "employer";
 
@@ -405,6 +406,7 @@ export default function PlacementsPage() {
           </div>
         </Section>
       </main>
+      <CmsInjectedSections slug="placements-before-footer" />
       <Footer />
     </>
   );

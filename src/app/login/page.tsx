@@ -6,10 +6,25 @@ export const metadata = {
   title: "Sign in · Captor",
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const rawNext = sp.next;
+  const nextParam = Array.isArray(rawNext) ? rawNext[0] : rawNext;
+  const next =
+    typeof nextParam === "string" &&
+    nextParam.startsWith("/") &&
+    !nextParam.startsWith("//")
+      ? nextParam
+      : undefined;
+
   const user = await getCurrentUser();
   if (user) {
-    redirect(["admin", "super_admin"].includes(user.role) ? "/admin" : "/");
+    const roleHome = ["admin", "super_admin"].includes(user.role) ? "/admin" : "/";
+    redirect(next ?? roleHome);
   }
 
   return (
@@ -25,7 +40,7 @@ export default async function LoginPage() {
             once you&apos;re in.
           </p>
         </header>
-        <LoginForm />
+        <LoginForm next={next} />
       </section>
     </main>
   );

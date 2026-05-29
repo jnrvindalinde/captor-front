@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { mockLeads } from "./_mock";
+import { mockLeads, type Lead } from "./_mock";
 
 function sameDay(a: Date, b: Date) {
   return (
@@ -24,7 +24,8 @@ type EventLite = {
   scheduled_at: string;
 };
 
-export function CalendarOverview() {
+export function CalendarOverview({ leads }: { leads?: Lead[] } = {}) {
+  const source = leads ?? mockLeads;
   // Compute "today" only on the client to avoid SSR/CSR drift.
   const [today, setToday] = useState<Date | null>(null);
   useEffect(() => {
@@ -34,7 +35,7 @@ export function CalendarOverview() {
   // All scheduled events with a date (any month)
   const eventsByDay = useMemo(() => {
     const m = new Map<string, EventLite[]>();
-    for (const lead of mockLeads) {
+    for (const lead of source) {
       if (!lead.scheduled_at) continue;
       const d = new Date(lead.scheduled_at);
       const key = d.toDateString();
@@ -43,7 +44,7 @@ export function CalendarOverview() {
       m.set(key, list);
     }
     return m;
-  }, []);
+  }, [source]);
 
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
