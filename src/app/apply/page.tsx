@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState, useCallback, useTransition } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
@@ -139,6 +138,7 @@ export default function ApplyPage() {
     if (typeof window === "undefined") return;
     const hash = window.location.hash.replace("#", "");
     const n = parseInt(hash, 10);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restore step from URL hash on mount
     if (!Number.isNaN(n) && n >= 1 && n <= STEPS.length) setStep(n);
   }, []);
 

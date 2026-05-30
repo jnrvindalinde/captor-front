@@ -28,6 +28,7 @@ function ClientDate({ iso }: { iso: string | null | undefined }) {
   const [s, setS] = useState<string>("");
   useEffect(() => {
     if (!iso) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- locale-formatted date on client only
     setS(new Date(iso).toLocaleString());
   }, [iso]);
   if (!iso) return <>—</>;
@@ -38,6 +39,7 @@ function ClientDay({ iso }: { iso: string | null | undefined }) {
   const [s, setS] = useState<string>("");
   useEffect(() => {
     if (!iso) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- locale-formatted date on client only
     setS(new Date(iso).toLocaleDateString());
   }, [iso]);
   if (!iso) return <>—</>;
@@ -190,7 +192,7 @@ export function ClientDetailView({
         <ActivityHintCard
           onAddNote={(msg) => {
             pushNotification({
-              id: Date.now(),
+              id: String(Date.now()),
               body: msg,
               created_at: new Date().toISOString(),
             });
@@ -265,8 +267,10 @@ function NextMilestoneCard({
   const [editing, setEditing] = useState<boolean>(false);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- sync form fields when parent milestone changes */
     setLabel(client.next_milestone?.label ?? "");
     setDue(toLocalInputValue(client.next_milestone?.due_at));
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [client.next_milestone?.label, client.next_milestone?.due_at]);
 
   return (
@@ -454,14 +458,18 @@ function StatusForm({
   );
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- rebaseline when parent status changes */
     setLocalStatus(status);
     setSavedStatus(status);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [status]);
 
   useEffect(() => {
     const v = consultantId ? String(consultantId) : "";
+    /* eslint-disable react-hooks/set-state-in-effect -- rebaseline when parent consultant changes */
     setLocalConsultant(v);
     setSavedConsultant(v);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [consultantId]);
 
   const dirty = localStatus !== savedStatus || localConsultant !== savedConsultant;

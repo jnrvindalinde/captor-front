@@ -10,7 +10,7 @@ export async function saveGlobalsAction(payload: Record<string, unknown>): Promi
     await apiFetch("/api/admin/globals", { method: "PATCH", json: payload });
     revalidatePath("/admin/cms/globals");
     revalidatePath("/");
-    revalidateTag("cms:globals");
+    revalidateTag("cms:globals", "max");
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Save failed" };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { Container } from "./Section";
 import { fetchPublicMenu, type PublicMenu } from "@/lib/cms/menusClient";
@@ -84,10 +85,10 @@ export function Footer() {
       <Container>
         <div className="foot__inner">
           <div className="foot__brand">
-            <a className="brand" href="/">
+            <Link className="brand" href="/">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={logoSrc} alt={companyName} className="brand__logo" height={42} width="auto" />
-            </a>
+            </Link>
             <p>{tagline}</p>
           </div>
           <div className="foot__cols">

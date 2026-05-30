@@ -40,6 +40,7 @@ export function StageForm({
   // scheduled, etc.) treat it as the new baseline — no Save needed.
   useEffect(() => {
     if (!userTouchedStatus) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- rebaseline when parent advances status programmatically
       setSavedStatus(status);
     }
   }, [status, userTouchedStatus]);

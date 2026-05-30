@@ -71,6 +71,7 @@ export function ScheduleMeetingModal({
 
   useEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset error when modal opens
     setError(null);
     const from = new Date();
     const to = new Date();
@@ -91,11 +92,13 @@ export function ScheduleMeetingModal({
 
   useEffect(() => {
     if (open) {
+      /* eslint-disable react-hooks/set-state-in-effect -- reset modal state on open */
       setSubmitting(false);
       setStep(1);
       setVisibleMonth(startOfMonth(today));
       setSelectedDay(null);
       setSelectedSlot(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [open, today]);
 
@@ -123,6 +126,7 @@ export function ScheduleMeetingModal({
   useEffect(() => {
     if (!open || !resp || !resp.data.length) return;
     const first = new Date(resp.data[0].start);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- jump to month of first available slot after fetch
     setVisibleMonth(startOfMonth(first));
   }, [open, resp]);
 

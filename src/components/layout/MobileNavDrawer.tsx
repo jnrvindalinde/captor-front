@@ -73,12 +73,13 @@ export function MobileNavDrawer({
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
 
+    const triggerSnapshot = triggerRef?.current ?? null;
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = overflow;
       // Return focus to the burger (or whatever opened us) for keyboard users.
-      if (triggerRef?.current) {
-        triggerRef.current.focus();
+      if (triggerSnapshot) {
+        triggerSnapshot.focus();
       } else {
         previouslyFocused?.focus?.();
       }

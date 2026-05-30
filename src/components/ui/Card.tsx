@@ -41,9 +41,9 @@ export function CardMediaThumb({
   src: string;
   alt?: string;
 }) {
-  // eslint-disable-next-line @next/next/no-img-element
   return (
     <div className="card-media__thumb">
+      {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary external/CMS URLs, CSS-sized */}
       <img src={src} alt={alt} />
     </div>
   );

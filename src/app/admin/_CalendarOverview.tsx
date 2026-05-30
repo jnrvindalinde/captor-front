@@ -29,6 +29,7 @@ export function CalendarOverview({ leads }: { leads?: Lead[] } = {}) {
   // Compute "today" only on the client to avoid SSR/CSR drift.
   const [today, setToday] = useState<Date | null>(null);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe "now"
     setToday(new Date());
   }, []);
 
@@ -51,6 +52,7 @@ export function CalendarOverview({ leads }: { leads?: Lead[] } = {}) {
   // Pick a sensible default once "today" is known
   useEffect(() => {
     if (!today || selectedDay) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- pick default day once "today" is known */
     if (eventsByDay.get(today.toDateString())) {
       setSelectedDay(today);
       return;
@@ -68,6 +70,7 @@ export function CalendarOverview({ leads }: { leads?: Lead[] } = {}) {
       }
     }
     setSelectedDay(today);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [today, eventsByDay, selectedDay]);
 
   if (!today) {

@@ -105,6 +105,7 @@ export function ClientsManager({
   }, [tab, programFilter, consultantFilter]);
 
   const [now, setNow] = useState<number | null>(null);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe "now"
   useEffect(() => setNow(Date.now()), []);
 
   const counts = useMemo(() => {

@@ -108,6 +108,7 @@ export function LeadsManager({
 
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe "now"
     setNow(Date.now());
   }, []);
 

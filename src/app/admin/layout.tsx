@@ -15,6 +15,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <aside className="admin-sidebar">
         <div className="admin-sidebar__brand">
           <Link href="/admin" aria-label="Captor admin home">
+            {/* eslint-disable-next-line @next/next/no-img-element -- static brand asset, CSS-sized */}
             <img
               src="/imports/c360 logo main dark.png"
               alt="Career360 Consult"

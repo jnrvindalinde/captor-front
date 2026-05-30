@@ -9,7 +9,7 @@ function bustPage(slug?: string | null, uuid?: string | null) {
   if (uuid) revalidatePath(`/admin/cms/pages/${uuid}`);
   if (slug) {
     revalidatePath(`/p/${slug}`);
-    revalidateTag(`cms:page:${slug}`);
+    revalidateTag(`cms:page:${slug}`, "max");
   }
 }
 

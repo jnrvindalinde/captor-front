@@ -49,7 +49,7 @@ export function FilePicker({
   const [selected, setSelected] = useState<{ name: string; size: number } | null>(null);
 
   useEffect(() => {
-    // Reset transient selection when current source changes externally.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset transient selection when current source changes externally
     setSelected(null);
   }, [currentName]);
 

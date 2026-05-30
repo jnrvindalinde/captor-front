@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, type FormEvent } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Section, Container } from "@/components/layout/Section";
 import { SiteNav } from "@/components/layout/SiteNav";
@@ -245,9 +246,9 @@ export default function ContactPage() {
                   >
                     Send another message
                   </button>
-                  <a href="/" className="contact-success__home">
+                  <Link href="/" className="contact-success__home">
                     Back to home
-                  </a>
+                  </Link>
                 </div>
               </motion.div>
             ) : (

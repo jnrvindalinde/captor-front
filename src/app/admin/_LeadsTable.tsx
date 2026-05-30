@@ -50,6 +50,7 @@ export function LeadsTable({ rows }: { rows?: Lead[] } = {}) {
   const [tab, setTab] = useState<TabKey>("all");
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe "now"
     setNow(Date.now());
   }, []);
 

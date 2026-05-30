@@ -86,6 +86,7 @@ function labelize(map: Record<string, string>, value: string) {
 function ClientDate({ iso }: { iso: string }) {
   const [text, setText] = useState("");
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- locale-formatted date on client only
     setText(new Date(iso).toLocaleString());
   }, [iso]);
   return <span suppressHydrationWarning>{text}</span>;
