@@ -5,7 +5,14 @@ import ResourcesIndexClient from "./ResourcesIndexClient";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Free resources for serious applicants · Captor",
+  title: "Resources",
+  description:
+    "Free guides, templates, videos and worksheets for applicants who want to do this properly.",
+  openGraph: {
+    title: "Resources · Career 360 Consult",
+    description:
+      "Free guides, templates, videos and worksheets for applicants who want to do this properly.",
+  },
 };
 
 export default async function ResourcesPage() {

@@ -4,6 +4,17 @@ import { BlogIndexClient } from "./BlogIndexClient";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Blog",
+  description:
+    "Field notes on admissions, applications, and the work behind a good next move.",
+  openGraph: {
+    title: "Blog · Career 360 Consult",
+    description:
+      "Field notes on admissions, applications, and the work behind a good next move.",
+  },
+};
+
 export default async function BlogPage() {
   const apiPosts = await fetchPublicPosts({ perPage: 24 });
   const live = apiPosts !== null;

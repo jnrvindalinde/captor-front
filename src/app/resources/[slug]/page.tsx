@@ -26,6 +26,34 @@ async function loadOne(slug: string): Promise<Resource | null> {
   return getResource(slug) ?? null;
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const resource = await loadOne(slug);
+  if (!resource) return { title: "Resource not found" };
+  const description = resource.excerpt || undefined;
+  const image = resource.hero || undefined;
+  return {
+    title: resource.title,
+    description,
+    openGraph: {
+      type: "article" as const,
+      title: resource.title,
+      description,
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: resource.title,
+      description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
+
 export default async function ResourceDetailPage({
   params,
 }: {

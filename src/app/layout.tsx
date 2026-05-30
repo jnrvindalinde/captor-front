@@ -19,10 +19,34 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+const SITE_NAME = "Career 360 Consult";
+const SITE_DESCRIPTION =
+  "Career and education consultancy for students and professionals serious about their next move.";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://captor-front-production.up.railway.app";
+
 export const metadata: Metadata = {
-  title: "Career 360 Consult — Your Future Deserves A Plan",
-  description:
-    "Career and education consultancy for students and professionals serious about their next move.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — Your Future Deserves A Plan`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Your Future Deserves A Plan`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    images: [{ url: "/logo.png", width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Your Future Deserves A Plan`,
+    description: SITE_DESCRIPTION,
+    images: ["/logo.png"],
+  },
 };
 
 export default async function RootLayout({

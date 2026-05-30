@@ -2,7 +2,16 @@ import { fetchPublicStories, mapApiStoryToView, type ApiStory, type StoryView } 
 import { mockStories } from "@/app/admin/_mock";
 import StoriesIndexClient from "./StoriesIndexClient";
 
-export const metadata = { title: "Stories · Captor 360" };
+export const metadata = {
+  title: "Stories",
+  description:
+    "Real outcomes from real applicants — the offers, the funding, the post-arrival stretch.",
+  openGraph: {
+    title: "Stories · Career 360 Consult",
+    description:
+      "Real outcomes from real applicants — the offers, the funding, the post-arrival stretch.",
+  },
+};
 export const dynamic = "force-dynamic";
 
 function mockToApi(s: (typeof mockStories)[number]): ApiStory {

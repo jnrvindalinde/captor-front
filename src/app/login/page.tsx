@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { LoginForm } from "./LoginForm";
 
 export const metadata = {
-  title: "Sign in · Captor",
+  title: "Sign in",
 };
 
 export default async function LoginPage({

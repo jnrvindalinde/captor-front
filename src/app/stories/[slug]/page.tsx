@@ -41,10 +41,24 @@ export async function generateMetadata({
   const api = await fetchPublicStory(slug);
   const story =
     api ?? (mockStories.find((s) => s.slug === slug) ? mockToApi(mockStories.find((s) => s.slug === slug)!) : null);
-  if (!story) return { title: "Story · Captor 360" };
+  if (!story) return { title: "Story not found" };
+  const description = story.summary ?? story.quote ?? undefined;
+  const image = story.cover_image ?? undefined;
   return {
-    title: `${story.person_name} · Captor 360 Stories`,
-    description: story.summary ?? story.quote ?? undefined,
+    title: `${story.person_name} — ${story.outcome}`,
+    description,
+    openGraph: {
+      type: "article" as const,
+      title: `${story.person_name} — ${story.outcome}`,
+      description,
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: `${story.person_name} — ${story.outcome}`,
+      description,
+      images: image ? [image] : undefined,
+    },
   };
 }
 

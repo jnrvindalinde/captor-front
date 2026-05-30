@@ -10,6 +10,31 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
+  const api = await fetchPublicPost(slug);
+  const post = api ? mapApiPostToBlogPost(api) : getBlog(slug);
+  if (!post) return { title: "Post not found" };
+  const description = post.excerpt || undefined;
+  const image = post.hero || undefined;
+  return {
+    title: post.title,
+    description,
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description,
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      title: post.title,
+      description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
+
 export default async function BlogDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
