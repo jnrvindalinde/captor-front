@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import { ScrollToTop } from "@/components/ui/ScrollToTop";
-import { RadiusToggle } from "@/components/ui/RadiusToggle";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -73,7 +72,6 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
           <ScrollToTop />
-          <RadiusToggle />
         </NextIntlClientProvider>
       </body>
     </html>
