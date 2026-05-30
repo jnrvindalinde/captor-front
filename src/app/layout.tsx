@@ -33,6 +33,13 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  icons: {
+    icon: [
+      { url: "/iconmark.webp", type: "image/webp" },
+    ],
+    shortcut: "/iconmark.webp",
+    apple: "/iconmark.webp",
+  },
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
