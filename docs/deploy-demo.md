@@ -1,6 +1,6 @@
 # Deploying Captor on Railway (front + back) — demo
 
-Temporary demo hosting. Not production-grade (single PHP process via `php artisan serve`, ephemeral filesystem, no queue worker).
+Temporary demo hosting. Backend runs on FrankenPHP (production-grade application server) via Railway's Railpack builder.
 
 ## Architecture
 
@@ -90,7 +90,7 @@ git add . ; git commit -m "Add deploy config + lint/build fixes" ; git push
 | `MAIL_MAILER`      | `log`                                                                          |
 | `CLOUDINARY_URL`   | your Cloudinary `cloudinary://...` URL                                         |
 
-5. Railway will run `nixpacks.toml`: install composer deps, cache config, run migrations, start `php artisan serve` on `$PORT`.
+5. Railway's **Railpack** builder auto-detects Laravel: installs Composer deps, caches config/routes/views, runs migrations on startup, and serves via **FrankenPHP** (Caddy + embedded PHP) with `/app/public` as the document root. No `Procfile` or `nixpacks.toml` needed.
 
 ### 4. Deploy the frontend
 
@@ -123,7 +123,5 @@ curl https://<your-back-domain>/api/cms/pages
 ## Demo limitations to flag to the client
 
 - **No background queue/worker** — emails and queued jobs run inline on the request.
-- **Single PHP process** — concurrency is poor; one slow request blocks others.
 - **Ephemeral filesystem** — uploads not stored on Cloudinary are lost on every redeploy.
 - **Cold starts** on Railway hobby plan when idle.
-- **`php artisan serve` is dev-grade** — replace with `nginx + php-fpm` (e.g. `serversideup/php` Docker image) before real production traffic.
